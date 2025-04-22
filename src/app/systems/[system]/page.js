@@ -1,12 +1,14 @@
 import { getVehiclesBySystem } from '@/lib/sheets'
 import VehicleCard from '@/components/VehicleCard'
 
+// 🔑 Fix: Prevents build-time crypto errors on Vercel
+export const dynamic = 'force-dynamic'
+
 export async function generateStaticParams() {
   const systems = ['air', 'road', 'rail', 'water', 'space', 'pipeline', 'cable', 'future']
   return systems.map((system) => ({ system }))
 }
 
-// ✅ Moved `params` destructure inside the function body
 export default async function SystemPage(props) {
   const { system } = await props.params
   const vehicles = await getVehiclesBySystem(system)
