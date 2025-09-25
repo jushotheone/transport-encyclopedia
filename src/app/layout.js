@@ -1,16 +1,18 @@
-import './globals.css'
+// app/layout.js
+import "@/app/globals.css";
+import LayoutWrapper from "@/components/LayoutWrapper";
 
 export const metadata = {
-  title: "Zion's Transport Encyclopedia",
-  description: 'Learn how the world moves — air, land, sea, and beyond!',
-}
+  title: "Zion Transport Encyclopedia",
+  description: "Explore how the world moves!",
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-gray-100 text-gray-800 font-sans">
-        {children}
+      <body>
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
-  )
+  );
 }
