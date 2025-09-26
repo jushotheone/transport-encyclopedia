@@ -13,20 +13,11 @@ const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, auth)
 export async function fetchVehicles() {
   await doc.loadInfo()
   const sheet = doc.sheetsByTitle['Vehicles']
-
-  // Load all rows (with or without headers)
   const rows = await sheet.getRows()
 
-  // 🔍 Log what's actually inside each row
-  console.log('🔍 Row Keys:', Object.keys(rows[0] || {}))
-  console.log('[Fetched Rows]', rows.length)
-
-  // Peek inside the raw data to debug column names
-  console.log('🔬 First Row Raw Data:', rows[0]?._rawData)
-
-  // Fallback: Try accessing columns from _rawData directly (index-based)
   return rows.map((row) => {
     const raw = row._rawData
+
     return {
       name: raw[0]?.trim() || '',
       slug: raw[1]?.trim() || '',
@@ -35,8 +26,27 @@ export async function fetchVehicles() {
       description: raw[4]?.trim() || '',
       funFact: raw[5]?.trim() || '',
       manufacturers: raw[6]
-        ? raw[6].split(',').map((m) => m.trim())
+        ? raw[6]
+            .split(/[,|•]+/) // supports commas, pipes, or bullets as delimiters
+            .map((m) => m.trim())
+            .filter(Boolean)
         : [],
+      more_images: raw[7]
+        ? raw[7].split(',').map((img) => img.trim())
+        : [],
+      video_url: raw[8]?.trim() || '',
+      zions_note: raw[9]?.trim() || '',
+      origin_country: raw[10]?.trim() || '',
+      flag_emoji: raw[11]?.trim() || '',
+      bonus_fact: raw[12]?.trim() || '',
+      learn_more: raw[13]?.trim() || '',
+      quiz_question: raw[14]?.trim() || '',
+      quiz_choices: raw[15]
+        ? raw[15].split(',').map((q) => q.trim())
+        : [],
+      quiz_answer: raw[16]?.trim() || '',
+      custom_sound_url: raw[17]?.trim() || '',
+      zions_recommendation: raw[18]?.trim() || '',
     }
   })
 }

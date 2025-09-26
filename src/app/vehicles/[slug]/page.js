@@ -6,16 +6,15 @@ function extractYouTubeID(url) {
   const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]+)/);
   return match ? match[1] : null;
 }
-
-export default async function VehiclePage({ params }) {
-  const { slug } = params;
+export default async function VehiclePage(props) {
+  const { slug } = await props.params;
   const vehicles = await fetchVehicles();
   const vehicle = vehicles.find((v) => v.slug === slug);
 
   if (!vehicle) return <div className="p-6">Vehicle not found.</div>;
 
   const youtubeId = extractYouTubeID(vehicle.video_url);
-  const imageUrls = [vehicle.image, ...(vehicle.more_images?.split(",") || [])].filter(Boolean);
+  const imageUrls = [vehicle.image, ...(vehicle.more_images || [])].filter(Boolean);
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -91,10 +90,14 @@ export default async function VehiclePage({ params }) {
       )}
 
       {/* 🏭 Manufacturers */}
-      {vehicle.manufacturers && (
+      {Array.isArray(vehicle.manufacturers) && vehicle.manufacturers.length > 0 && (
         <section>
           <h2 className="text-xl font-semibold mb-2">🏭 Who Builds It?</h2>
-          <p>{vehicle.manufacturers}</p>
+          <ul className="list-disc ml-6 space-y-1 text-gray-800">
+            {vehicle.manufacturers.map((m, i) => (
+              <li key={i}>{m}</li>
+            ))}
+          </ul>
         </section>
       )}
 
