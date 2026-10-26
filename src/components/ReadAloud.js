@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Icon from '@/components/Icon'
 
 export default function ReadAloud({ text }) {
   const [supported, setSupported] = useState(false)
@@ -34,7 +35,7 @@ export default function ReadAloud({ text }) {
       aria-pressed={speaking}
       className="rounded-full bg-zts-midnight px-4 py-2 text-sm font-bold text-white shadow hover:bg-zts-blue"
     >
-      {speaking ? '⏹️ Stop reading' : '🔊 Read it to me'}
+      {speaking ? <><Icon name="stop" className="mr-1 h-4 w-4" />Stop reading</> : <><Icon name="volume" className="mr-1 h-4 w-4" />Read it to me</>}
     </button>
   )
 }

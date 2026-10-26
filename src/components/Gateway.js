@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { divisions } from '@/lib/divisions'
 import { AVATARS, markIntroSeen, setProfile, useExplorer } from '@/lib/explorer'
 import { play } from '@/lib/sound'
+import { Avatar } from '@/components/Icon'
 
 // The Future Gateway: stillness, then transport paths emerge and join into one living network.
 const STEPS = [
@@ -54,7 +55,7 @@ export default function Gateway() {
     >
       <div className="starfield absolute inset-0 opacity-70" aria-hidden="true" />
       <button type="button" onClick={finish} className="absolute right-4 top-4 z-10 rounded-full bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/20">
-        Skip ⏭
+        Skip
       </button>
 
       <svg viewBox="-100 -100 200 200" className="absolute h-[min(90vw,90vh)] w-[min(90vw,90vh)]" aria-hidden="true">
@@ -122,14 +123,14 @@ export default function Gateway() {
                   aria-checked={avatar === a}
                   aria-label={`Explorer ${a}`}
                   onClick={() => setAvatar(a)}
-                  className={`h-12 w-12 rounded-full text-2xl transition ${avatar === a ? 'bg-zts-orange ring-4 ring-white/60' : 'bg-white/10 hover:bg-white/20'}`}
+                  className={`rounded-full p-0.5 transition ${avatar === a ? 'ring-4 ring-white' : 'opacity-70 hover:opacity-100'}`}
                 >
-                  {a}
+                  <Avatar name={a} className="h-11 w-11" />
                 </button>
               ))}
             </div>
             <button type="submit" className="rounded-full bg-zts-orange px-8 py-3 text-lg font-extrabold shadow-lg hover:brightness-110">
-              I&apos;m ready ✨
+              I&apos;m ready
             </button>
           </form>
         )}

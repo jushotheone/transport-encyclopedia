@@ -3,7 +3,6 @@ export const divisions = [
   {
     slug: 'air',
     name: 'Air Transport',
-    emoji: '✈️',
     accent: '#31A8E0',
     secondary: '#F4FAFD',
     tagline: 'Master the sky',
@@ -13,7 +12,6 @@ export const divisions = [
   {
     slug: 'road',
     name: 'Road Transport',
-    emoji: '🚗',
     accent: '#F59E0B',
     secondary: '#32383D',
     tagline: 'Keep the world rolling',
@@ -23,7 +21,6 @@ export const divisions = [
   {
     slug: 'rail',
     name: 'Rail Transport',
-    emoji: '🚆',
     accent: '#D64045',
     secondary: '#69747C',
     tagline: 'Precision on parallel lines',
@@ -33,7 +30,6 @@ export const divisions = [
   {
     slug: 'water',
     name: 'Water Transport',
-    emoji: '🚢',
     accent: '#008C95',
     secondary: '#12344A',
     tagline: 'Navigate the deep',
@@ -43,7 +39,6 @@ export const divisions = [
   {
     slug: 'space',
     name: 'Space Transport',
-    emoji: '🚀',
     accent: '#4246A3',
     secondary: '#E9EEF6',
     tagline: 'Beyond the sky',
@@ -53,7 +48,6 @@ export const divisions = [
   {
     slug: 'pipeline',
     name: 'Pipeline Transport',
-    emoji: '🛢️',
     accent: '#24875D',
     secondary: '#B66A3C',
     tagline: 'The silent carriers',
@@ -63,7 +57,6 @@ export const divisions = [
   {
     slug: 'cable',
     name: 'Cable Transport',
-    emoji: '🚡',
     accent: '#E97828',
     secondary: '#F7F7F4',
     tagline: 'Riding the high lines',
@@ -73,7 +66,6 @@ export const divisions = [
   {
     slug: 'future',
     name: 'Future Tech',
-    emoji: '🌀',
     accent: '#00BBD4',
     secondary: '#7057D9',
     tagline: 'Tomorrow, tested today',

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { getDivision } from '@/lib/divisions'
 import { learn, recordWin } from '@/lib/explorer'
 import { play } from '@/lib/sound'
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 const ROUNDS = 5
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
@@ -17,11 +18,13 @@ function cluesFor(v) {
   const d = getDivision(v.system)
   const firstSentence = v.description.split(/(?<=[.!?])\s+/)[0]
   return [
-    d && { icon: d.emoji, text: `I belong to the ${d.name} division.` },
-    v.origin_country && { icon: v.flag_emoji || '🌍', text: `I come from ${v.origin_country}.` },
-    v.manufacturers.length > 0 && { icon: '🏭', text: `I am built by ${v.manufacturers.join(' and ')}.` },
-    v.funFact && { icon: '🎉', text: mask(v.funFact, v.name) },
-    firstSentence && { icon: '🗣️', text: mask(firstSentence, v.name) },
+    d && { icon: 'division', slug: d.slug, text: `I belong to the ${d.name} division.` },
+    v.origin_country && { icon: 'globe', flag: v.flag_emoji, text: `I come from ${v.origin_country}.` },
+    v.manufacturers.length > 0 && { icon: 'factory', text: `I am built by ${v.manufacturers.join(' and ')}.` },
+    v.funFact && { icon: 'sparkles', text: mask(v.funFact, v.name) },
+    v.bonus_fact && { icon: 'brain', text: mask(v.bonus_fact, v.name) },
+    v.zions_note && { icon: 'chat', text: `Zion says: "${mask(v.zions_note, v.name)}"` },
+    firstSentence && { icon: 'megaphone', text: mask(firstSentence, v.name) },
   ].filter(Boolean)
 }
 
@@ -59,7 +62,7 @@ export default function GuessGame({ vehicles }) {
   if (vehicles.length < 3) {
     return (
       <div className="rounded-3xl bg-white p-8 text-center shadow">
-        <p className="text-5xl" aria-hidden="true">🛰️</p>
+        <p className="flex justify-center text-zts-blue" aria-hidden="true"><Icon name="satellite" className="h-14 w-14" /></p>
         <p className="mt-2 text-lg font-bold">Zion needs to find a few more vehicles before this game can start. Check back soon!</p>
       </div>
     )
@@ -69,11 +72,11 @@ export default function GuessGame({ vehicles }) {
   if (round >= rounds.length) {
     return (
       <div className="rounded-3xl bg-zts-midnight p-8 text-center text-white shadow-lg">
-        <p className="text-6xl" aria-hidden="true">🏆</p>
+        <p className="flex justify-center text-yellow-300" aria-hidden="true"><Icon name="trophy" className="h-16 w-16" /></p>
         <h2 className="mt-2 text-3xl font-extrabold">You scored {score} points!</h2>
         <p className="mt-1 text-white/80">Fewer clues means more points. Can you beat that?</p>
         <button type="button" onClick={restart} className="mt-6 rounded-full bg-zts-orange px-8 py-3 text-lg font-extrabold hover:brightness-110">
-          🔁 Play again
+          <Icon name="retry" className="mr-1.5 h-5 w-5" />Play again
         </button>
       </div>
     )
@@ -109,7 +112,7 @@ export default function GuessGame({ vehicles }) {
       <ol className="space-y-3" aria-label="Clues">
         {clues.slice(0, shown).map((c, i) => (
           <li key={i} className="flex items-start gap-3 rounded-2xl bg-white p-4 text-lg shadow animate-cardin">
-            <span className="text-3xl" aria-hidden="true">{c.icon}</span>
+            <span className="text-zts-blue" aria-hidden="true">{c.flag ? <span className="text-3xl">{c.flag}</span> : c.icon === 'division' ? <DivisionIcon slug={c.slug} className="h-8 w-8" /> : <Icon name={c.icon} className="h-8 w-8" />}</span>
             <span><span className="font-extrabold text-zts-blue">Clue {i + 1}: </span>{c.text}</span>
           </li>
         ))}
@@ -121,7 +124,7 @@ export default function GuessGame({ vehicles }) {
           onClick={() => setShown((s) => s + 1)}
           className="rounded-full bg-zts-midnight px-5 py-2 font-extrabold text-white hover:bg-zts-blue"
         >
-          🔎 Another clue (worth fewer points)
+          <Icon name="search" className="mr-1.5 h-5 w-5" />Another clue (worth fewer points)
         </button>
       )}
 
@@ -146,7 +149,7 @@ export default function GuessGame({ vehicles }) {
                 onClick={() => pick(c)}
                 className={`w-full rounded-2xl p-4 text-left text-lg font-extrabold shadow transition ${state}`}
               >
-                {getDivision(c.system)?.emoji} {c.name}
+                <DivisionIcon slug={c.system} className="mr-2 h-5 w-5" />{c.name}
                 {result && isAnswer && <span className="sr-only"> (correct answer)</span>}
               </button>
             </li>
@@ -157,11 +160,11 @@ export default function GuessGame({ vehicles }) {
       {result && (
         <div aria-live="polite" className="rounded-2xl bg-orange-50 p-4 shadow">
           <p className="text-xl font-extrabold text-zts-midnight">
-            {result.correct ? `🎉 Yes! It is the ${vehicle.name}! +${points}` : `Not quite. It was the ${vehicle.name}!`}
+            {result.correct ? `Yes! It is the ${vehicle.name}! +${points}` : `Not quite. It was the ${vehicle.name}!`}
           </p>
           <div className="mt-3 flex flex-wrap gap-3">
             <button type="button" onClick={next} className="rounded-full bg-zts-orange px-6 py-2 font-extrabold text-white">
-              {round + 1 === rounds.length ? 'See my score' : 'Next mystery →'}
+              {round + 1 === rounds.length ? 'See my score' : 'Next mystery'}
             </button>
           </div>
         </div>

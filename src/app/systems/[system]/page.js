@@ -5,6 +5,7 @@ import { divisions, getDivision } from '@/lib/divisions'
 import CardGrid from '@/components/CardGrid'
 import RouteLadder from '@/components/RouteLadder'
 import ExpeditionLink from '@/components/ExpeditionLink'
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 export const revalidate = 300
 
@@ -32,7 +33,7 @@ export default async function SystemPage({ params }) {
       <section className="starfield px-4 py-12 text-white" style={{ background: `linear-gradient(135deg, ${division.accent}, #102A43)` }}>
         <div className="mx-auto max-w-4xl">
           <Link href="/" className="text-sm font-bold text-white/80 hover:text-white">← Network map</Link>
-          <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl"><span aria-hidden="true">{division.emoji}</span> {division.name}</h1>
+          <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl"><DivisionIcon slug={division.slug} className="mr-2 h-10 w-10" />{division.name}</h1>
           <p className="mt-1 text-lg font-bold uppercase tracking-wide text-white/80">{division.tagline}</p>
           <p className="mt-3 max-w-2xl text-lg text-white/90">{division.description}</p>
         </div>

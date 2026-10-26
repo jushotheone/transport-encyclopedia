@@ -16,7 +16,7 @@ export const disruptions = {
 export const scenarios = [
   {
     id: 'snow-medicine',
-    emoji: '💊',
+    icon: 'pill',
     title: 'Snowbound medicine',
     story: 'A mountain village is cut off by snow. 40 boxes of medicine must arrive today. The village has one small flat field.',
     options: {
@@ -32,7 +32,7 @@ export const scenarios = [
   },
   {
     id: 'festival-rush',
-    emoji: '🎪',
+    icon: 'party',
     title: 'Festival rush',
     story: '3,000 people need to get from the city to a seaside festival before the evening show starts.',
     options: {
@@ -48,7 +48,7 @@ export const scenarios = [
   },
   {
     id: 'island-books',
-    emoji: '📚',
+    icon: 'book',
     title: 'Island school books',
     story: '200 boxes of books must reach a school on an island before term starts. The sea is calm.',
     options: {
@@ -64,7 +64,7 @@ export const scenarios = [
   },
   {
     id: 'cliff-rescue',
-    emoji: '🆘',
+    icon: 'siren',
     title: 'Cliff path rescue',
     story: 'A hiker is hurt on a narrow cliff path. There is no road nearby, and they need a hospital fast.',
     options: {
@@ -80,7 +80,7 @@ export const scenarios = [
   },
   {
     id: 'thirsty-city',
-    emoji: '💧',
+    icon: 'droplets',
     title: 'Water for a thirsty city',
     story: 'A big city needs millions of litres of clean water every single day, all year round.',
     options: {
@@ -98,7 +98,7 @@ export const scenarios = [
 
 export const ratingPoints = { great: 1.5, ok: 1, poor: 0 }
 export const ratingLabel = {
-  great: { text: 'Great choice!', emoji: '🌟' },
-  ok: { text: 'It could work', emoji: '👍' },
-  poor: { text: 'Not a good fit', emoji: '🤔' },
+  great: { text: 'Great choice!', icon: 'star' },
+  ok: { text: 'It could work', icon: 'thumbs' },
+  poor: { text: 'Not a good fit', icon: 'help' },
 }

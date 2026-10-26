@@ -4,14 +4,16 @@ import Gateway from '@/components/Gateway'
 import HudBar from '@/components/HudBar'
 import NetworkMap from '@/components/NetworkMap'
 import DailyPanel from '@/components/DailyPanel'
+import Icon from '@/components/Icon'
+import InstallPrompt from '@/components/InstallPrompt'
 
 export const revalidate = 300
 
 const tiles = [
-  { href: '/play', emoji: '🎮', title: 'Play', text: 'Puzzles, missions and mystery vehicles', colour: '#D64045' },
-  { href: '/cards', emoji: '🃏', title: 'My Cards', text: 'Collect shiny vehicle cards', colour: '#4246A3' },
-  { href: '/studio', emoji: '🛠️', title: 'Design Studio', text: 'Invent your own vehicle', colour: '#24875D' },
-  { href: '/passport', emoji: '🎖️', title: 'Passport', text: 'Badges, streaks and what you learned', colour: '#E97828' },
+  { href: '/play', icon: 'gamepad', title: 'Play', text: 'Puzzles, missions and mystery vehicles', colour: '#D64045' },
+  { href: '/cards', icon: 'layers', title: 'My Cards', text: 'Collect shiny vehicle cards', colour: '#4246A3' },
+  { href: '/studio', icon: 'hammer', title: 'Design Studio', text: 'Invent your own vehicle', colour: '#24875D' },
+  { href: '/passport', icon: 'medal', title: 'Passport', text: 'Badges, streaks and what you learned', colour: '#E97828' },
 ]
 
 export default async function HomePage() {
@@ -31,13 +33,14 @@ export default async function HomePage() {
 
         <HudBar totalCards={vehicles.length} />
         <NetworkMap />
+        <InstallPrompt />
         <DailyPanel vehicleSlugs={vehicles.map((v) => v.slug)} />
 
         <ul className="grid grid-cols-2 gap-4">
           {tiles.map((t) => (
             <li key={t.href}>
               <Link href={t.href} className="flex h-full flex-col rounded-3xl p-5 text-white shadow-lg transition hover:-translate-y-1 hover:shadow-2xl" style={{ background: `linear-gradient(145deg, ${t.colour}, #102A43)` }}>
-                <span className="text-4xl" aria-hidden="true">{t.emoji}</span>
+                <Icon name={t.icon} className="h-10 w-10" />
                 <span className="mt-1 text-xl font-extrabold">{t.title}</span>
                 <span className="text-sm text-white/85">{t.text}</span>
               </Link>

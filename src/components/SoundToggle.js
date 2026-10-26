@@ -1,5 +1,6 @@
 'use client'
 import { setMusic, setMuted, useExplorer } from '@/lib/explorer'
+import Icon from '@/components/Icon'
 
 export default function SoundToggle() {
   const { muted, music } = useExplorer()
@@ -7,10 +8,10 @@ export default function SoundToggle() {
   return (
     <>
       <button type="button" onClick={() => setMusic(!music)} aria-pressed={music} aria-label={music ? 'Turn music off' : 'Turn music on'} className={`${btn} ${music ? 'ring-2 ring-zts-orange' : 'opacity-70'}`}>
-        🎵
+        <Icon name="music" className="h-4 w-4" />
       </button>
       <button type="button" onClick={() => setMuted(!muted)} aria-pressed={!muted} aria-label={muted ? 'Turn sound effects on' : 'Turn sound effects off'} className={btn}>
-        {muted ? '🔇' : '🔊'}
+        {muted ? <Icon name="mute" className="h-4 w-4" /> : <Icon name="volume" className="h-4 w-4" />}
       </button>
     </>
   )

@@ -5,14 +5,7 @@ import { scenarios, disruptions, ratingPoints, ratingLabel } from '@/lib/mission
 import { learn, readProgress, recordWin } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
-
-function Stars({ count }) {
-  return (
-    <p className="text-5xl" role="img" aria-label={`${count} out of 3 stars`}>
-      {[1, 2, 3].map((n) => (n <= count ? '⭐' : '☆'))}
-    </p>
-  )
-}
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 function OptionGrid({ onPick, blocked }) {
   return (
@@ -28,7 +21,7 @@ function OptionGrid({ onPick, blocked }) {
               className="flex h-full w-full flex-col items-center rounded-2xl p-4 text-center font-extrabold text-white shadow transition enabled:hover:-translate-y-1 enabled:hover:shadow-xl disabled:opacity-30"
               style={{ background: `linear-gradient(145deg, ${d.accent}, #102A43)` }}
             >
-              <span className="text-4xl" aria-hidden="true">{isBlocked ? '🚫' : d.emoji}</span>
+              <span className="block" aria-hidden="true">{isBlocked ? <Icon name="ban" className="h-9 w-9" /> : <DivisionIcon slug={d.slug} className="h-9 w-9" />}</span>
               <span className="mt-1 text-sm">{d.name.replace(' Transport', '')}</span>
               {isBlocked && <span className="text-xs font-semibold">Broken!</span>}
             </button>
@@ -89,10 +82,10 @@ export default function MissionGame() {
                 onClick={() => start(s)}
                 className="flex h-full w-full items-start gap-4 rounded-3xl bg-white p-5 text-left shadow-lg ring-1 ring-zts-midnight/10 transition hover:-translate-y-1 hover:shadow-2xl"
               >
-                <span className="text-5xl" aria-hidden="true">{s.emoji}</span>
+                <Icon name={s.icon} className="h-12 w-12 text-zts-blue" />
                 <span>
                   <span className="block text-xl font-extrabold text-zts-midnight">
-                    {s.title} {done.includes(`mission:${s.id}`) && <span title="Completed">✅</span>}
+                    {s.title} {done.includes(`mission:${s.id}`) && <Icon name="ok" className="ml-1 h-5 w-5 text-green-600" />}
                   </span>
                   <span className="text-sm text-zts-graphite/80">{s.story}</span>
                 </span>
@@ -107,7 +100,7 @@ export default function MissionGame() {
   const panel = 'rounded-3xl p-6 shadow-lg'
   const briefing = (
     <div className={`${panel} bg-white`}>
-      <p className="text-4xl" aria-hidden="true">{scenario.emoji}</p>
+      <Icon name={scenario.icon} className="h-10 w-10 text-zts-blue" />
       <h2 className="text-2xl font-extrabold text-zts-midnight">{scenario.title}</h2>
       <p className="mt-1 text-lg">{scenario.story}</p>
     </div>
@@ -117,7 +110,7 @@ export default function MissionGame() {
     return (
       <div className="space-y-5">
         {briefing}
-        <h3 className="text-xl font-extrabold text-zts-midnight">🗺️ Plan A: how will you do it?</h3>
+        <h3 className="text-xl font-extrabold text-zts-midnight"><Icon name="map" className="mr-2 h-6 w-6 text-zts-blue" />Plan A: how will you do it?</h3>
         <OptionGrid onPick={chooseA} />
       </div>
     )
@@ -127,10 +120,10 @@ export default function MissionGame() {
     const a = getDivision(planA)
     return (
       <div className={`${panel} bg-zts-midnight text-center text-white`} role="alert">
-        <p className="text-6xl animate-floaty" aria-hidden="true">⚠️</p>
+        <p className="flex justify-center text-zts-orange animate-floaty" aria-hidden="true"><Icon name="alert" className="h-16 w-16" /></p>
         <h2 className="mt-2 text-3xl font-extrabold text-zts-orange">The Route Breaker strikes!</h2>
         <p className="mt-3 text-xl">
-          You chose {a.emoji} <strong>{a.name}</strong>. {disruptions[planA]}
+          You chose <DivisionIcon slug={planA} className="mx-1 h-6 w-6" /> <strong>{a.name}</strong>. {disruptions[planA]}
         </p>
         <p className="mt-2 text-white/80">Plan A is out. The mission still has to be completed!</p>
         <button
@@ -148,7 +141,7 @@ export default function MissionGame() {
     return (
       <div className="space-y-5">
         {briefing}
-        <h3 className="text-xl font-extrabold text-zts-midnight">🔄 Plan B: what is your backup?</h3>
+        <h3 className="text-xl font-extrabold text-zts-midnight"><Icon name="retry" className="mr-2 h-6 w-6 text-zts-blue" />Plan B: what is your backup?</h3>
         <OptionGrid onPick={chooseB} blocked={planA} />
       </div>
     )
@@ -165,7 +158,7 @@ export default function MissionGame() {
       <li className="rounded-2xl bg-white p-4 shadow">
         <p className="text-sm font-bold uppercase text-zts-graphite/60">{label}</p>
         <p className="text-lg font-extrabold text-zts-midnight">
-          {d.emoji} {d.name} <span className="text-base">{ratingLabel[opt.rating].emoji} {ratingLabel[opt.rating].text}</span>
+          <DivisionIcon slug={slug} className="mr-1 h-6 w-6" />{d.name} <span className="ml-1 inline-flex items-center gap-1 text-base"><Icon name={ratingLabel[opt.rating].icon} className="h-5 w-5" />{ratingLabel[opt.rating].text}</span>
         </p>
         <p>{opt.why}</p>
       </li>
@@ -175,7 +168,7 @@ export default function MissionGame() {
   return (
     <div className="space-y-5">
       <div className={`${panel} bg-zts-midnight text-center text-white`}>
-        <Stars count={stars} />
+        <Stars count={stars} className="h-12 w-12" />
         <h2 className="mt-2 text-3xl font-extrabold">{headline}</h2>
       </div>
       <ul className="space-y-3">
@@ -183,7 +176,7 @@ export default function MissionGame() {
         {review('Plan B', planB, b)}
       </ul>
       <div className={`${panel} border-l-8 border-zts-orange bg-orange-50`}>
-        <h3 className="font-extrabold text-zts-midnight">🧠 Engineer&apos;s tip: always have a backup</h3>
+        <h3 className="font-extrabold text-zts-midnight"><Icon name="brain" className="mr-2 h-5 w-5 text-zts-orange" />Engineer&apos;s tip: always have a backup</h3>
         <p>
           Real transport networks plan for things going wrong. Having more than one way to get somewhere is called{' '}
           <strong>route redundancy</strong>, and it keeps people and supplies moving when one route breaks.
@@ -191,10 +184,10 @@ export default function MissionGame() {
       </div>
       <div className="flex flex-wrap gap-3">
         <button type="button" onClick={() => start(scenario)} className="rounded-full bg-zts-blue px-6 py-3 font-extrabold text-white">
-          🔁 Try this mission again
+          <Icon name="retry" className="mr-1.5 h-5 w-5" />Try this mission again
         </button>
         <button type="button" onClick={() => setStage('pick')} className="rounded-full bg-zts-orange px-6 py-3 font-extrabold text-white">
-          🎯 Pick another mission
+          <Icon name="target" className="mr-1.5 h-5 w-5" />Pick another mission
         </button>
       </div>
     </div>

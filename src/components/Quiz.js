@@ -4,6 +4,7 @@ import { isCorrectAnswer } from '@/lib/utils'
 import { learn, recordQuizWin } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
+import Icon from '@/components/Icon'
 
 export default function Quiz({ slug, question, choices, answer, accent }) {
   const [picked, setPicked] = useState(null)
@@ -29,7 +30,7 @@ export default function Quiz({ slug, question, choices, answer, accent }) {
       className="rounded-3xl p-6 text-white shadow-lg"
       style={{ background: `linear-gradient(135deg, #102A43, ${accent})` }}
     >
-      <h2 id="quiz-heading" className="text-xl font-extrabold">🎮 Mission Quiz</h2>
+      <h2 id="quiz-heading" className="text-xl font-extrabold"><Icon name="gamepad" className="mr-2 h-6 w-6" />Mission Quiz</h2>
       <p className="mt-2 text-lg font-semibold">{question}</p>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {choices.map((choice, i) => {
@@ -58,7 +59,7 @@ export default function Quiz({ slug, question, choices, answer, accent }) {
         })}
       </ul>
       <div aria-live="polite" className="mt-4 min-h-6 font-bold">
-        {answered && (correct ? '🎉 Brilliant! You got it. That is one more discovery!' : '🤔 Not quite. The right answer is highlighted, so now you know!')}
+        {answered && (correct ? 'Brilliant! You got it. That is one more discovery!' : 'Not quite. The right answer is highlighted, so now you know!')}
       </div>
       {answered && (
         <button

@@ -8,6 +8,7 @@ import CardReveal from '@/components/CardReveal'
 import SceneArt from '@/components/SceneArt'
 import { learn, recordCard } from '@/lib/explorer'
 import { play } from '@/lib/sound'
+import Icon, { DivisionIcon } from '@/components/Icon'
 
 // One card = one idea. Cards are plain data built on the server (see vehicle page).
 function Reveal({ card, accent }) {
@@ -20,7 +21,7 @@ function Reveal({ card, accent }) {
       className="flex min-h-72 w-full flex-col items-center justify-center rounded-3xl p-8 text-center text-white shadow-lg"
       style={{ background: open ? '#0f766e' : `linear-gradient(135deg, ${accent}, #102A43)` }}
     >
-      <span className="text-6xl" aria-hidden="true">{open ? card.icon : '❓'}</span>
+      <span className="flex h-16 items-center justify-center" aria-hidden="true">{open ? (card.flag ? <span className="text-6xl">{card.flag}</span> : <Icon name={card.icon} className="h-16 w-16" />) : <Icon name="help" className="h-16 w-16" />}</span>
       <span className="mt-3 text-2xl font-extrabold">{card.title}</span>
       <span className="mt-3 text-2xl font-bold leading-snug sm:text-3xl">
         {open ? card.body : 'Tap to reveal!'}
@@ -43,7 +44,7 @@ function CardBody({ card, accent, slug }) {
           ) : (
             <>
               <SceneArt slug={card.slug} className="absolute inset-0 h-full w-full" />
-              <span className="absolute inset-x-0 top-8 text-8xl drop-shadow-lg" aria-hidden="true">{card.emoji}</span>
+              <span className="absolute inset-x-0 top-8 flex justify-center text-white drop-shadow-lg" aria-hidden="true"><DivisionIcon slug={card.slug} className="h-24 w-24" /></span>
             </>
           )}
           <div className="relative w-full bg-gradient-to-t from-black/80 to-transparent p-6 pt-16">
@@ -78,7 +79,7 @@ function CardBody({ card, accent, slug }) {
     case 'final':
       return (
         <div className="flex min-h-72 flex-col items-center justify-center rounded-3xl bg-zts-midnight p-8 text-center text-white shadow-lg">
-          <p className="text-6xl" aria-hidden="true">🎖️</p>
+          <p className="flex justify-center text-zts-orange" aria-hidden="true"><Icon name="medal" className="h-16 w-16" /></p>
           <h2 className="mt-2 text-3xl font-extrabold">Discovery logged!</h2>
           <p className="mt-1 text-white/80">Where next, explorer?</p>
           <div className="mt-5 flex flex-wrap justify-center gap-3">
@@ -87,7 +88,7 @@ function CardBody({ card, accent, slug }) {
                 {r.name} →
               </Link>
             ))}
-            <Link href="/play" className="rounded-full bg-zts-orange px-4 py-2 font-extrabold hover:brightness-110">🎮 Play a game</Link>
+            <Link href="/play" className="rounded-full bg-zts-orange px-4 py-2 font-extrabold hover:brightness-110"><Icon name="gamepad" className="mr-1.5 h-5 w-5" />Play a game</Link>
           </div>
         </div>
       )
@@ -97,7 +98,7 @@ function CardBody({ card, accent, slug }) {
           className="flex min-h-72 flex-col justify-center rounded-3xl p-8 shadow-lg"
           style={card.tone === 'dark' ? { background: '#102A43', color: '#fff' } : { background: '#fff', borderLeft: `10px solid ${accent}` }}
         >
-          <p className="text-5xl" aria-hidden="true">{card.icon}</p>
+          <p aria-hidden="true">{card.flag ? <span className="text-5xl">{card.flag}</span> : <Icon name={card.icon} className="h-12 w-12" />}</p>
           <h2 className="mt-2 text-lg font-extrabold uppercase tracking-wide opacity-70">{card.title}</h2>
           <p className="mt-2 text-2xl font-bold leading-snug sm:text-3xl">{card.body}</p>
           {card.note && <p className="mt-4 text-lg font-bold italic" style={{ color: accent }}>{card.note}</p>}

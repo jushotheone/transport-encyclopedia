@@ -41,3 +41,24 @@ Content is cached for 5 minutes, so edits appear without a redeploy.
 - **Control Room**: one clue unlocks per repaired route. The clues in `src/lib/story.js` are placeholders that never reveal what the Route Breaker is.
 
 All progress is stored in the browser (`src/lib/explorer.js`). There are no accounts and no personal data.
+
+## Zion's content drives the games
+
+The Daily Challenge and Endless Run build questions from **every** field in the `Vehicles` tab (facts, bonus facts, notes,
+recommendations, manufacturers, countries, photos, sounds and Zion's own quiz questions), so the more Zion adds, the more
+varied the games get. Question logic lives in `src/lib/challenges.js` (12 question types, adaptive difficulty).
+
+### Optional `Challenges` tab (questions written by Zion)
+
+Add a tab named `Challenges` with these columns (row 1 is the header):
+
+| vehicle slug | question | right answer | wrong 1 | wrong 2 | wrong 3 | explanation | approved |
+|---|---|---|---|---|---|---|---|
+
+A row only appears in the game when the last column says `yes`. That keeps anything unchecked (for example questions
+drafted by an AI helper) away from children until a grown-up has read it.
+
+## Installing as an app
+
+The site is an installable web app (`src/app/manifest.js`, `public/sw.js`). On a phone, "Add to Home Screen" gives
+a one-tap icon, which is the easiest way to keep a daily streak going.

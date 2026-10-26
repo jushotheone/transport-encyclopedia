@@ -3,14 +3,14 @@ import { hashString } from '@/lib/routegen'
 
 // What each division's puzzle looks like, and the real idea the child just practised.
 export const routeThemes = {
-  air: { vehicle: '✈️', deco: 'dash', from: 'Airport', to: 'Destination', learned: 'Planes follow fixed flight paths called airways, so they never meet in the same piece of sky.' },
-  road: { vehicle: '🚗', deco: 'dash', from: 'Depot', to: 'Delivery', learned: 'Junctions and lanes keep traffic flowing. A good road network has more than one way to get somewhere.' },
-  rail: { vehicle: '🚆', deco: 'sleepers', from: 'Station', to: 'Terminus', learned: 'Trains cannot steer. Track switches called points send them left or right.' },
-  water: { vehicle: '⛵', deco: 'dash', from: 'Harbour', to: 'Port', learned: 'Ships follow marked shipping lanes, and buoys show where the water is safe and deep enough.' },
-  space: { vehicle: '🚀', deco: 'dash', from: 'Launch pad', to: 'Orbit', learned: 'Rockets follow a trajectory planned in advance, because there are no roads in space.' },
-  pipeline: { vehicle: '💧', deco: 'flow', from: 'Source', to: 'Tank', learned: 'Pipelines use valves and junctions to steer liquids and gas, just like points steer trains.' },
-  cable: { vehicle: '🚡', deco: 'dots', from: 'Valley station', to: 'Summit', learned: 'Cable cars run on strong cables between stations, so the route is fixed and has to be planned carefully.' },
-  future: { vehicle: '🌀', deco: 'flow', from: 'Test hub', to: 'Smart city', learned: 'Future transport is tested again and again before it carries people, because safety comes first.' },
+  air: { vehicle: 'plane', deco: 'dash', from: 'Airport', to: 'Destination', learned: 'Planes follow fixed flight paths called airways, so they never meet in the same piece of sky.' },
+  road: { vehicle: 'car', deco: 'dash', from: 'Depot', to: 'Delivery', learned: 'Junctions and lanes keep traffic flowing. A good road network has more than one way to get somewhere.' },
+  rail: { vehicle: 'train', deco: 'sleepers', from: 'Station', to: 'Terminus', learned: 'Trains cannot steer. Track switches called points send them left or right.' },
+  water: { vehicle: 'ship', deco: 'dash', from: 'Harbour', to: 'Port', learned: 'Ships follow marked shipping lanes, and buoys show where the water is safe and deep enough.' },
+  space: { vehicle: 'rocket', deco: 'dash', from: 'Launch pad', to: 'Orbit', learned: 'Rockets follow a trajectory planned in advance, because there are no roads in space.' },
+  pipeline: { vehicle: 'droplets', deco: 'flow', from: 'Source', to: 'Tank', learned: 'Pipelines use valves and junctions to steer liquids and gas, just like points steer trains.' },
+  cable: { vehicle: 'cablecar', deco: 'dots', from: 'Valley station', to: 'Summit', learned: 'Cable cars run on strong cables between stations, so the route is fixed and has to be planned carefully.' },
+  future: { vehicle: 'atom', deco: 'flow', from: 'Test hub', to: 'Smart city', learned: 'Future transport is tested again and again before it carries people, because safety comes first.' },
 }
 
 // One clue unlocks per repaired route. They describe the anomaly, never who or what causes it.
@@ -27,18 +27,18 @@ export const clues = {
 
 // Real-world challenges: the offline part of exploring. One is chosen per day.
 export const fieldMissions = [
-  { emoji: '👀', title: 'Spot three', text: 'On your next trip, spot three different kinds of vehicle. Which division is each one from?' },
-  { emoji: '🛞', title: 'Wheel count', text: 'Find a vehicle with two wheels, one with four, and one with more than four. What is each one for?' },
-  { emoji: '🚦', title: 'Signal watch', text: 'Watch a set of traffic lights for one whole cycle. How many cars get through before it changes?' },
-  { emoji: '🗣️', title: 'Teach a grown-up', text: 'Tell someone one fun fact you learned today. Can you explain it without looking?' },
-  { emoji: '🗺️', title: 'Route detective', text: 'Next time you travel, name the route you take. Is there a backup route if it gets blocked?' },
-  { emoji: '✏️', title: 'Sketch a vehicle', text: 'Draw a vehicle you saw today. What is each part for? Why is it that shape?' },
-  { emoji: '☁️', title: 'Sky check', text: 'Look up for two minutes. Count the aircraft or trails you see. Which way are they heading?' },
-  { emoji: '🔊', title: 'Sound hunt', text: 'Close your eyes and listen. How many different transport sounds can you hear?' },
-  { emoji: '📦', title: 'Where did it travel?', text: 'Pick something in your home. How do you think it got there? Plane, ship, train or lorry?' },
-  { emoji: '🏗️', title: 'Build a route', text: 'Use cushions, blocks or toys to build a route with a backup. Then block one path. Does it still work?' },
-  { emoji: '🧭', title: 'North star', text: 'Find which direction is north near your home. How would a pilot or sailor use it?' },
-  { emoji: '🤔', title: 'Ask why', text: 'Pick a vehicle and ask a grown-up "why is it shaped like that?" Write down the answer.' },
+  { icon: 'eye', title: 'Spot three', text: 'On your next trip, spot three different kinds of vehicle. Which division is each one from?' },
+  { icon: 'car', title: 'Wheel count', text: 'Find a vehicle with two wheels, one with four, and one with more than four. What is each one for?' },
+  { icon: 'cone', title: 'Signal watch', text: 'Watch a set of traffic lights for one whole cycle. How many cars get through before it changes?' },
+  { icon: 'megaphone', title: 'Teach a grown-up', text: 'Tell someone one fun fact you learned today. Can you explain it without looking?' },
+  { icon: 'route', title: 'Route detective', text: 'Next time you travel, name the route you take. Is there a backup route if it gets blocked?' },
+  { icon: 'pencil', title: 'Sketch a vehicle', text: 'Draw a vehicle you saw today. What is each part for? Why is it that shape?' },
+  { icon: 'wind', title: 'Sky check', text: 'Look up for two minutes. Count the aircraft or trails you see. Which way are they heading?' },
+  { icon: 'volume', title: 'Sound hunt', text: 'Close your eyes and listen. How many different transport sounds can you hear?' },
+  { icon: 'unbox', title: 'Where did it travel?', text: 'Pick something in your home. How do you think it got there? Plane, ship, train or lorry?' },
+  { icon: 'hammer', title: 'Build a route', text: 'Use cushions, blocks or toys to build a route with a backup. Then block one path. Does it still work?' },
+  { icon: 'compass', title: 'North star', text: 'Find which direction is north near your home. How would a pilot or sailor use it?' },
+  { icon: 'help', title: 'Ask why', text: 'Pick a vehicle and ask a grown-up "why is it shaped like that?" Write down the answer.' },
 ]
 
 export function fieldMissionFor(day) {

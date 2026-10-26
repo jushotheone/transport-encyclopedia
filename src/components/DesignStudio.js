@@ -9,6 +9,7 @@ import { MAX_DESIGNS, learn, recordWin, saveDesign, useExplorer } from '@/lib/ex
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
 import { toast } from '@/lib/toast'
+import Icon from '@/components/Icon'
 
 const chip = (on) => `rounded-2xl px-3 py-2 text-center text-sm font-extrabold transition ${on ? 'bg-zts-midnight text-white shadow-lg' : 'bg-white text-zts-midnight shadow hover:-translate-y-0.5'}`
 
@@ -23,7 +24,7 @@ function Group({ title, children }) {
 
 export default function DesignStudio() {
   const { designs } = useExplorer()
-  const [d, setD] = useState({ name: 'Sky Zipper', body: 'pod', mover: 'wings', top: 'windows', colour: '#1D9BF0', sticker: '⭐', size: 1 })
+  const [d, setD] = useState({ name: 'Sky Zipper', body: 'pod', mover: 'wings', top: 'windows', colour: '#1D9BF0', sticker: 'star', size: 1 })
   const [mission, setMission] = useState(null)
   const set = (patch) => {
     setD((x) => ({ ...x, ...patch }))
@@ -34,13 +35,13 @@ export default function DesignStudio() {
   const full = designs.length >= MAX_DESIGNS
 
   function save() {
-    if (!d.name.trim()) return toast('Give your vehicle a name first!', '✏️')
+    if (!d.name.trim()) return toast('Give your vehicle a name first!', 'pencil')
     if (saveDesign({ ...d, name: d.name.trim() })) {
       play('win')
       confetti({ count: 90 })
-      toast(`${d.name.trim()} is in your garage! +4 XP`, '🛠️')
+      toast(`${d.name.trim()} is in your garage! +4 XP`, 'hammer')
       learn('design:function', 'Good designers start with what a vehicle must do, then make it look great. Function first!')
-    } else toast('Your garage is full. Remove a vehicle to make space.', '🅿️')
+    } else toast('Your garage is full. Remove a vehicle to make space.', 'alert')
   }
 
   function test(s) {
@@ -70,20 +71,20 @@ export default function DesignStudio() {
             />
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => { setD(randomDesign()); setMission(null); play('tap') }} className="flex-1 rounded-full bg-zts-blue px-4 py-3 font-extrabold text-white hover:brightness-110">🎲 Surprise me</button>
-            <button type="button" onClick={save} disabled={full} className="flex-1 rounded-full bg-zts-orange px-4 py-3 font-extrabold text-white hover:brightness-110 disabled:opacity-40">💾 Save to garage</button>
+            <button type="button" onClick={() => { setD(randomDesign()); setMission(null); play('tap') }} className="flex-1 rounded-full bg-zts-blue px-4 py-3 font-extrabold text-white hover:brightness-110"><Icon name="shuffle" className="mr-1.5 h-5 w-5" />Surprise me</button>
+            <button type="button" onClick={save} disabled={full} className="flex-1 rounded-full bg-zts-orange px-4 py-3 font-extrabold text-white hover:brightness-110 disabled:opacity-40"><Icon name="download" className="mr-1.5 h-5 w-5" />Save to garage</button>
           </div>
         </div>
 
         <div className="space-y-3">
           <Group title="1. Body">
-            {bodies.map((b) => <button key={b.id} type="button" aria-pressed={d.body === b.id} onClick={() => set({ body: b.id })} className={chip(d.body === b.id)}>{b.emoji} {b.name}</button>)}
+            {bodies.map((b) => <button key={b.id} type="button" aria-pressed={d.body === b.id} onClick={() => set({ body: b.id })} className={chip(d.body === b.id)}>{b.name}</button>)}
           </Group>
           <Group title="2. How does it move?">
-            {movers.map((m) => <button key={m.id} type="button" aria-pressed={d.mover === m.id} onClick={() => set({ mover: m.id })} className={chip(d.mover === m.id)} title={m.note}>{m.emoji} {m.name}</button>)}
+            {movers.map((m) => <button key={m.id} type="button" aria-pressed={d.mover === m.id} onClick={() => set({ mover: m.id })} className={chip(d.mover === m.id)} title={m.note}><Icon name={m.icon} className="mr-1 h-4 w-4" />{m.name}</button>)}
           </Group>
           <Group title="3. On top">
-            {tops.map((t) => <button key={t.id} type="button" aria-pressed={d.top === t.id} onClick={() => set({ top: t.id })} className={chip(d.top === t.id)}>{t.emoji} {t.name}</button>)}
+            {tops.map((t) => <button key={t.id} type="button" aria-pressed={d.top === t.id} onClick={() => set({ top: t.id })} className={chip(d.top === t.id)}>{t.name}</button>)}
           </Group>
           <Group title="4. Colour">
             {colours.map((c) => (
@@ -91,7 +92,7 @@ export default function DesignStudio() {
             ))}
           </Group>
           <Group title="5. Sticker and size">
-            {stickers.map((s) => <button key={s} type="button" aria-pressed={d.sticker === s} onClick={() => set({ sticker: s })} className={chip(d.sticker === s)}>{s}</button>)}
+            {stickers.map((s) => <button key={s} type="button" aria-label={`Sticker ${s}`} aria-pressed={d.sticker === s} onClick={() => set({ sticker: s })} className={chip(d.sticker === s)}><Icon name={s} className="h-5 w-5" /></button>)}
             <span className="mx-1 w-px bg-slate-300" aria-hidden="true" />
             {sizes.map((z) => <button key={z.id} type="button" aria-pressed={d.size === z.id} onClick={() => set({ size: z.id })} className={chip(d.size === z.id)}>{z.name}</button>)}
           </Group>
@@ -99,13 +100,13 @@ export default function DesignStudio() {
       </div>
 
       <section aria-labelledby="test-h" className="rounded-3xl bg-white p-5 shadow-lg ring-1 ring-zts-midnight/10">
-        <h2 id="test-h" className="text-2xl font-extrabold text-zts-midnight">🧪 Test it on a mission</h2>
+        <h2 id="test-h" className="text-2xl font-extrabold text-zts-midnight"><Icon name="flask" className="mr-2 h-6 w-6 text-green-700" />Test it on a mission</h2>
         <p className="text-zts-graphite/80">Does {d.name || 'your vehicle'} have the right parts for the job? Pick a mission to find out.</p>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {scenarios.map((s) => (
             <li key={s.id}>
               <button type="button" onClick={() => test(s)} className="flex w-full items-center gap-3 rounded-2xl bg-slate-50 p-3 text-left font-bold hover:bg-sky-50">
-                <span className="text-3xl" aria-hidden="true">{s.emoji}</span>{s.title}
+                <Icon name={s.icon} className="h-8 w-8 text-zts-blue" />{s.title}
               </button>
             </li>
           ))}
@@ -113,7 +114,7 @@ export default function DesignStudio() {
         {mission && (
           <div aria-live="polite" className="animate-pop mt-4 rounded-2xl bg-zts-midnight p-4 text-white">
             <p className="text-lg font-extrabold">
-              {ratingLabel[mission.opt.rating].emoji} {mission.s.title}: {ratingLabel[mission.opt.rating].text}
+              <Icon name={ratingLabel[mission.opt.rating].icon} className="mr-1 h-5 w-5" />{mission.s.title}: {ratingLabel[mission.opt.rating].text}
             </p>
             <p className="mt-1">{mission.opt.why}</p>
             <p className="mt-2 text-sm text-white/70">
@@ -125,7 +126,7 @@ export default function DesignStudio() {
       </section>
 
       <section aria-labelledby="garage-h">
-        <h2 id="garage-h" className="mb-3 text-2xl font-extrabold text-zts-midnight">🏠 My garage</h2>
+        <h2 id="garage-h" className="mb-3 text-2xl font-extrabold text-zts-midnight"><Icon name="home" className="mr-2 h-6 w-6 text-green-700" />My garage</h2>
         <Garage />
       </section>
     </div>

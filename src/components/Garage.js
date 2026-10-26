@@ -5,7 +5,7 @@ import { deleteDesign, MAX_DESIGNS, useExplorer } from '@/lib/explorer'
 export default function Garage({ editable = true }) {
   const { designs } = useExplorer()
   if (designs.length === 0) {
-    return <p className="rounded-2xl bg-white p-6 text-center shadow">Your garage is empty. Design your first vehicle in the studio! 🛠️</p>
+    return <p className="rounded-2xl bg-white p-6 text-center shadow">Your garage is empty. Design your first vehicle in the studio!</p>
   }
   return (
     <div>

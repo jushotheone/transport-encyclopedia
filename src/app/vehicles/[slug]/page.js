@@ -5,6 +5,7 @@ import { getDivision } from '@/lib/divisions'
 import { extractYouTubeID, safeUrl } from '@/lib/utils'
 import Deck from '@/components/Deck'
 import ExplorerTracker from '@/components/ExplorerTracker'
+import Icon from '@/components/Icon'
 
 export const revalidate = 300
 
@@ -38,7 +39,6 @@ function buildCards(vehicle, division, related, images, youtubeId) {
       type: 'cover',
       slug: vehicle.system,
       name: vehicle.name,
-      emoji: division.emoji,
       image: images[0] || null,
       division: division.name,
     },
@@ -47,7 +47,7 @@ function buildCards(vehicle, division, related, images, youtubeId) {
   chunk(vehicle.description).forEach((body, n, all) =>
     cards.push({
       type: 'text',
-      icon: '🗣️',
+      icon: 'megaphone',
       title: all.length > 1 ? `Zion explains (${n + 1}/${all.length})` : 'Zion explains',
       body,
       note: n === all.length - 1 && vehicle.zions_note ? `Zion says: "${vehicle.zions_note}"` : null,
@@ -57,18 +57,18 @@ function buildCards(vehicle, division, related, images, youtubeId) {
   if (youtubeId) cards.push({ type: 'video', id: youtubeId, title: `Video: ${vehicle.name}` })
   images.slice(1).forEach((src, n) => cards.push({ type: 'image', src, alt: `${vehicle.name}, picture ${n + 2}` }))
 
-  if (vehicle.funFact) cards.push({ type: 'reveal', icon: '🎉', title: 'Fun fact', body: vehicle.funFact })
+  if (vehicle.funFact) cards.push({ type: 'reveal', icon: 'sparkles', title: 'Fun fact', body: vehicle.funFact })
   if (vehicle.origin_country)
-    cards.push({ type: 'reveal', icon: vehicle.flag_emoji || '🌍', title: 'Where is it from?', body: vehicle.origin_country })
+    cards.push({ type: 'reveal', icon: 'globe', flag: vehicle.flag_emoji, title: 'Where is it from?', body: vehicle.origin_country })
   if (vehicle.manufacturers.length)
-    cards.push({ type: 'reveal', icon: '🏭', title: 'Who builds it?', body: vehicle.manufacturers.join(', ') })
-  if (vehicle.bonus_fact) cards.push({ type: 'reveal', icon: '🧠', title: 'Did you know?', body: vehicle.bonus_fact })
+    cards.push({ type: 'reveal', icon: 'factory', title: 'Who builds it?', body: vehicle.manufacturers.join(', ') })
+  if (vehicle.bonus_fact) cards.push({ type: 'reveal', icon: 'brain', title: 'Did you know?', body: vehicle.bonus_fact })
 
   if (vehicle.quiz_question && vehicle.quiz_choices.length >= 2)
     cards.push({ type: 'quiz', question: vehicle.quiz_question, choices: vehicle.quiz_choices, answer: vehicle.quiz_answer })
 
   if (vehicle.zions_recommendation)
-    cards.push({ type: 'fact', tone: 'dark', icon: '💬', title: 'Zion recommends', body: vehicle.zions_recommendation })
+    cards.push({ type: 'fact', tone: 'dark', icon: 'chat', title: 'Zion recommends', body: vehicle.zions_recommendation })
 
   cards.push({ type: 'final', related: related.map(({ name, slug }) => ({ name, slug })) })
   return cards
@@ -79,7 +79,7 @@ export default async function VehiclePage({ params }) {
   const { vehicles, vehicle } = await findVehicle(slug)
   if (!vehicle) notFound()
 
-  const division = getDivision(vehicle.system) || { name: vehicle.system, slug: '', emoji: '🚦', accent: '#1D9BF0' }
+  const division = getDivision(vehicle.system) || { name: vehicle.system, slug: '', accent: '#1D9BF0' }
   const images = [vehicle.image, ...vehicle.more_images].map(safeUrl).filter(Boolean)
   const related = vehicles.filter((v) => v.system === vehicle.system && v.slug !== vehicle.slug).slice(0, 2)
   const links = vehicle.learn_more.split(',').map(safeUrl).filter(Boolean)
@@ -115,7 +115,7 @@ export default async function VehiclePage({ params }) {
 
         {links.length > 0 && (
           <details className="mt-8 rounded-2xl bg-white p-4 shadow">
-            <summary className="cursor-pointer font-extrabold text-zts-midnight">👨‍👩‍👧 Grown-ups corner: learn more</summary>
+            <summary className="cursor-pointer font-extrabold text-zts-midnight"><Icon name="users" className="mr-2 h-5 w-5" />Grown-ups corner: learn more</summary>
             <p className="mt-2 text-sm text-zts-graphite/70">These links open other websites.</p>
             <ul className="mt-2 list-disc space-y-1 pl-6">
               {links.map((href) => (

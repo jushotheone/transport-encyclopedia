@@ -1,12 +1,29 @@
 import Link from 'next/link'
 import HudBar from '@/components/HudBar'
+import Icon from '@/components/Icon'
 
 export const metadata = { title: 'Play', description: 'Games, missions and puzzles from Zion Transport System.' }
 
 const games = [
   {
+    href: '/play/daily',
+    icon: 'calendar',
+    title: 'Daily Challenge',
+    blurb: 'Eight new questions every day, made from Zion\'s own vehicles, notes and quizzes. Everyone gets the same ones.',
+    skill: 'Thinking: new every day',
+    colour: '#F28C28',
+  },
+  {
+    href: '/play/run',
+    icon: 'zap',
+    title: 'Endless Run',
+    blurb: 'Three lives. It gets harder as you win, with surprise lightning rounds. How far can you go?',
+    skill: 'Thinking: beat your best',
+    colour: '#D64045',
+  },
+  {
     href: '/explore/air',
-    emoji: '🔭',
+    icon: 'telescope',
     title: 'Expeditions',
     blurb: 'Search a scene for hidden discoveries. Every one teaches you something real!',
     skill: 'Exploring: look closely',
@@ -14,7 +31,7 @@ const games = [
   },
   {
     href: '/play/fact',
-    emoji: '🕵️',
+    icon: 'search',
     title: 'Fact or Fake?',
     blurb: 'Ten quick claims. Spot the real facts and catch the fakes. Takes about one minute!',
     skill: 'Thinking: check before you believe',
@@ -22,7 +39,7 @@ const games = [
   },
   {
     href: '/',
-    emoji: '🧩',
+    icon: 'puzzle',
     title: 'Route Builder',
     blurb: 'Turn tiles to connect the route. The Route Breaker will wreck it, so find another way!',
     skill: 'Puzzle: plan, test, adapt',
@@ -30,7 +47,7 @@ const games = [
   },
   {
     href: '/studio',
-    emoji: '🛠️',
+    icon: 'hammer',
     title: 'Design Studio',
     blurb: 'Invent a vehicle from parts, then see if it can survive a real mission.',
     skill: 'Creating: function first',
@@ -38,7 +55,7 @@ const games = [
   },
   {
     href: '/play/missions',
-    emoji: '🗺️',
+    icon: 'map',
     title: 'Mission Planner',
     blurb: 'Plan a delivery or rescue. Then the Route Breaker wrecks your plan, so can you find a backup?',
     skill: 'Thinking: weigh up trade-offs',
@@ -46,7 +63,7 @@ const games = [
   },
   {
     href: '/play/guess',
-    emoji: '🔎',
+    icon: 'eye',
     title: 'Who Am I?',
     blurb: 'Clues appear one by one. Name the mystery vehicle before you run out of points!',
     skill: 'Thinking: use clues to work it out',
@@ -54,7 +71,7 @@ const games = [
   },
   {
     href: '/systems/air',
-    emoji: '🃏',
+    icon: 'layers',
     title: 'Mission Cards',
     blurb: 'Flip through the card deck for every vehicle, then take on its quiz.',
     skill: 'Discovering: collect facts',
@@ -66,7 +83,7 @@ export default function PlayPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-4 py-10">
       <div>
-        <h1 className="text-4xl font-extrabold text-zts-midnight">🎮 Play</h1>
+        <h1 className="text-4xl font-extrabold text-zts-midnight"><Icon name="gamepad" className="mr-2 h-9 w-9 text-zts-orange align-[-0.12em]" />Play</h1>
         <p className="mt-1 text-lg text-zts-graphite/80">Every game wins you discoveries and ranks you up.</p>
       </div>
       <HudBar />
@@ -78,7 +95,7 @@ export default function PlayPage() {
               className="flex h-full flex-col rounded-3xl p-6 text-white shadow-lg transition hover:-translate-y-1 hover:shadow-2xl"
               style={{ background: `linear-gradient(145deg, ${g.colour}, #102A43)` }}
             >
-              <span className="text-5xl" aria-hidden="true">{g.emoji}</span>
+              <Icon name={g.icon} className="h-12 w-12" />
               <span className="mt-2 text-2xl font-extrabold">{g.title}</span>
               <span className="mt-1 flex-1 text-white/90">{g.blurb}</span>
               <span className="mt-4 text-sm font-bold uppercase tracking-wide text-white/80">{g.skill}</span>

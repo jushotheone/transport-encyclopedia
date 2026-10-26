@@ -5,10 +5,11 @@ import { getDivision } from '@/lib/divisions'
 import { rarityOf } from '@/lib/story'
 import { safeUrl } from '@/lib/utils'
 import SceneArt from '@/components/SceneArt'
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 // A collectible vehicle card. Rare cards get a holographic shine that follows the finger or mouse.
 export default function ExplorerCard({ vehicle, flippable = false, flipped: forced, className = '' }) {
-  const division = getDivision(vehicle.system) || { accent: '#1D9BF0', emoji: '🚦', name: vehicle.system }
+  const division = getDivision(vehicle.system) || { accent: '#1D9BF0', name: vehicle.system }
   const rarity = rarityOf(vehicle.slug)
   const img = safeUrl(vehicle.image)
   const ref = useRef(null)
@@ -54,7 +55,7 @@ export default function ExplorerCard({ vehicle, flippable = false, flipped: forc
           <div className="flex h-full flex-col rounded-xl bg-[#0b1626] p-2 text-white">
             <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-wider">
               <span style={{ color: rarity.colour }}>{rarity.label}</span>
-              <span aria-hidden="true">{division.emoji}</span>
+              <DivisionIcon slug={vehicle.system} className="h-4 w-4" />
             </div>
             <div className="relative mt-1 flex-1 overflow-hidden rounded-lg" style={{ background: `linear-gradient(135deg, ${division.accent}, #102A43)` }}>
               {img ? (
@@ -63,7 +64,7 @@ export default function ExplorerCard({ vehicle, flippable = false, flipped: forc
               ) : (
                 <>
                   <SceneArt slug={vehicle.system} className="absolute inset-0 h-full w-full" />
-                  <span className="relative flex h-full items-center justify-center text-7xl drop-shadow-lg" aria-hidden="true">{division.emoji}</span>
+                  <span className="relative flex h-full items-center justify-center text-white drop-shadow-lg" aria-hidden="true"><DivisionIcon slug={vehicle.system} className="h-16 w-16" /></span>
                 </>
               )}
             </div>
@@ -86,11 +87,11 @@ export default function ExplorerCard({ vehicle, flippable = false, flipped: forc
 
         <div className={`${face} flex flex-col justify-between bg-[#0b1626] p-4 text-white ring-4`} style={{ transform: 'rotateY(180deg)', '--tw-ring-color': rarity.colour }}>
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-wider" style={{ color: rarity.colour }}>🎉 Fun fact</p>
+            <p className="text-xs font-extrabold uppercase tracking-wider" style={{ color: rarity.colour }}><Icon name="sparkles" className="mr-1 h-3.5 w-3.5" />Fun fact</p>
             <p className="mt-2 text-sm font-bold leading-snug">{vehicle.funFact || vehicle.description || 'More facts coming soon!'}</p>
           </div>
           <Link href={`/vehicles/${vehicle.slug}`} onClick={(e) => e.stopPropagation()} className="rounded-full bg-white/15 py-2 text-center text-sm font-extrabold hover:bg-white/25">
-            Open file →
+            Open file
           </Link>
         </div>
       </div>
@@ -99,14 +100,14 @@ export default function ExplorerCard({ vehicle, flippable = false, flipped: forc
 }
 
 export function LockedCard({ vehicle }) {
-  const division = getDivision(vehicle.system) || { accent: '#64748b', emoji: '🚦' }
+  const division = getDivision(vehicle.system) || { accent: '#64748b' }
   return (
     <Link
       href={`/vehicles/${vehicle.slug}`}
       className="relative flex aspect-[5/7] w-full max-w-[240px] flex-col items-center justify-center rounded-2xl border-4 border-dashed border-slate-300 bg-slate-100 text-center text-slate-500 transition hover:border-zts-orange hover:bg-orange-50"
     >
-      <span className="text-5xl opacity-30 grayscale" aria-hidden="true">{division.emoji}</span>
-      <span className="mt-2 text-3xl" aria-hidden="true">❓</span>
+      <span className="opacity-30" aria-hidden="true"><DivisionIcon slug={vehicle.system} className="h-12 w-12" /></span>
+      <Icon name="lock" className="mt-2 h-8 w-8" />
       <span className="mt-1 px-3 text-sm font-extrabold">Discover to collect</span>
       <span className="sr-only">{vehicle.name} card, locked</span>
     </Link>

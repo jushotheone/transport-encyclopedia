@@ -6,6 +6,7 @@ import { routeThemes, clues } from '@/lib/story'
 import { learn, levelsCleared, recordLevel, useExplorer } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 const EDGES = [[N, 50, 0], [E, 100, 50], [S, 50, 100], [W, 0, 50]]
 
@@ -13,7 +14,7 @@ function Tile({ tile, rot, lit, broken, hinted, accent, deco, disabled, onClick,
   if (tile.rubble || broken) {
     return (
       <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-900/70 text-2xl sm:text-3xl" aria-label={broken ? 'Broken tile' : 'Rubble'}>
-        <span className={broken ? 'animate-shake' : 'opacity-60'}>{broken ? '💥' : '🪨'}</span>
+        <span className={broken ? 'animate-shake text-red-400' : 'text-slate-500'}><Icon name={broken ? 'zap' : 'mountain'} className="h-8 w-8" /></span>
       </div>
     )
   }
@@ -135,23 +136,23 @@ function Board({ division, theme, level, onDone }) {
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-extrabold text-white">
         <span className="rounded-full bg-white/10 px-3 py-1">Moves {moves}</span>
         <span className="rounded-full bg-white/10 px-3 py-1">Par {data.par}</span>
-        <span className="rounded-full bg-white/10 px-3 py-1">{data.twist ? '⚠️ The Route Breaker is watching' : 'Warm-up level'}</span>
+        <span className="rounded-full bg-white/10 px-3 py-1">{data.twist ? <><Icon name="alert" className="mr-1 h-4 w-4 text-amber-300" />The Route Breaker is watching</> : 'Warm-up level'}</span>
       </div>
 
       <p role="status" className="min-h-14 rounded-2xl bg-white/10 px-4 py-3 text-center font-bold text-white">
-        {phase === 'strike' && '⚡ Connected! But wait…'}
-        {phase === 'play' && broken !== null && '💥 The Route Breaker broke a tile! Find another way through!'}
-        {phase === 'play' && broken === null && 'Tap tiles to turn them. Link the glowing start to the 🏁 goal!'}
-        {phase === 'won' && step < cells.length + 1 && `${theme.vehicle} Off it goes…`}
+        {phase === 'strike' && 'Connected! But wait…'}
+        {phase === 'play' && broken !== null && 'The Route Breaker broke a tile! Find another way through!'}
+        {phase === 'play' && broken === null && 'Tap tiles to turn them. Link the glowing start to the goal flag!'}
+        {phase === 'won' && step < cells.length + 1 && 'Off it goes…'}
         {phase === 'won' && step >= cells.length + 1 && 'Route complete!'}
       </p>
 
       <div className={`relative mx-auto w-full max-w-md px-14 ${phase === 'strike' ? 'animate-shake' : ''}`}>
         <span className="absolute left-0 flex w-14 -translate-y-1/2 flex-col items-center text-[10px] font-extrabold leading-tight text-white" style={{ top: `${((data.start + 0.5) / size) * 100}%` }}>
-          <span className="text-2xl" aria-hidden="true">{division.emoji}</span>{theme.from}
+          <DivisionIcon slug={division.slug} className="h-7 w-7" />{theme.from}
         </span>
         <span className="absolute right-0 flex w-14 -translate-y-1/2 flex-col items-center text-[10px] font-extrabold leading-tight text-white" style={{ top: `${((data.end + 0.5) / size) * 100}%` }}>
-          <span className="text-2xl" aria-hidden="true">🏁</span>{theme.to}
+          <Icon name="flag" className="h-7 w-7" />{theme.to}
         </span>
 
         <div className="relative">
@@ -178,7 +179,7 @@ function Board({ division, theme, level, onDone }) {
               style={{ left: `${((pos.c + 0.5) / size) * 100}%`, top: `${((pos.r + 0.5) / size) * 100}%`, transform: 'translate(-50%,-50%)' }}
               aria-hidden="true"
             >
-              {theme.vehicle}
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg"><Icon name={theme.vehicle} className="h-6 w-6 text-zts-midnight" /></span>
             </span>
           )}
         </div>
@@ -187,26 +188,26 @@ function Board({ division, theme, level, onDone }) {
       {phase !== 'won' && (
         <div className="flex justify-center gap-3">
           <button type="button" onClick={hint} disabled={phase !== 'play'} className="rounded-full bg-yellow-400 px-5 py-2 font-extrabold text-zts-midnight disabled:opacity-40">
-            💡 Hint <span className="text-xs">(max 2 stars)</span>
+            <Icon name="lightbulb" className="mr-1 h-5 w-5" />Hint <span className="text-xs">(max 2 stars)</span>
           </button>
         </div>
       )}
 
       {result && (
         <div className="animate-pop space-y-3 rounded-3xl bg-white p-5 text-zts-midnight shadow-2xl">
-          <p className="text-center text-5xl" role="img" aria-label={`${result.stars} stars`}>{[1, 2, 3].map((n) => (n <= result.stars ? '⭐' : '☆'))}</p>
-          <p className="rounded-2xl bg-sky-50 p-3 font-bold"><span aria-hidden="true">💡 </span>{theme.learned}</p>
+          <p className="flex justify-center"><Stars count={result.stars} className="h-12 w-12" /></p>
+          <p className="rounded-2xl bg-sky-50 p-3 font-bold"><Icon name="lightbulb" className="mr-1.5 h-5 w-5 text-yellow-500" />{theme.learned}</p>
           {result.repairedNow && (
             <div className="rounded-2xl bg-orange-50 p-3">
-              <p className="font-extrabold">🎉 {division.name} route repaired!</p>
+              <p className="font-extrabold">{division.name} route repaired!</p>
               <p className="text-sm">A new clue appeared: <strong>{clues[division.slug].glyph} {clues[division.slug].title}</strong>. See it in the <Link href="/control-room" className="font-bold text-zts-blue underline">Control Room</Link>.</p>
             </div>
           )}
           <div className="flex flex-wrap gap-2">
             {level < 3 && (
-              <button type="button" onClick={() => onDone?.('next')} className="rounded-full bg-zts-orange px-5 py-2 font-extrabold text-white">Next level →</button>
+              <button type="button" onClick={() => onDone?.('next')} className="rounded-full bg-zts-orange px-5 py-2 font-extrabold text-white">Next level</button>
             )}
-            <button type="button" onClick={() => onDone?.('retry')} className="rounded-full bg-zts-blue px-5 py-2 font-extrabold text-white">🔁 Beat your stars</button>
+            <button type="button" onClick={() => onDone?.('retry')} className="rounded-full bg-zts-blue px-5 py-2 font-extrabold text-white"><Icon name="retry" className="mr-1.5 h-5 w-5" />Beat your stars</button>
             <Link href={`/systems/${division.slug}`} className="rounded-full bg-slate-200 px-5 py-2 font-extrabold">Back to hub</Link>
           </div>
         </div>
@@ -256,8 +257,8 @@ export default function RouteBuilder({ division }) {
               }}
               className={`flex-1 rounded-2xl px-2 py-2 text-center text-sm font-extrabold transition ${level === n ? 'bg-white text-zts-midnight' : 'bg-white/10 text-white'} disabled:opacity-40`}
             >
-              {ok ? `Level ${n}` : `🔒 Level ${n}`}
-              <span className="block text-xs">{stars[n] ? '⭐'.repeat(stars[n]) : ok ? 'Not yet' : 'Locked'}</span>
+              {ok ? `Level ${n}` : <><Icon name="lock" className="mr-1 h-4 w-4" />Level {n}</>}
+              <span className="block text-xs">{stars[n] ? <Stars count={stars[n]} className="h-4 w-4" /> : ok ? 'Not yet' : 'Locked'}</span>
             </button>
           )
         })}

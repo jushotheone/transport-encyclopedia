@@ -14,7 +14,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['ui-rounded', '"Nunito"', '"Trebuchet MS"', 'system-ui', 'sans-serif'],
+        display: ['"Fredoka Variable"', 'ui-rounded', '"Trebuchet MS"', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         drift: { '0%': { strokeDashoffset: '400' }, '100%': { strokeDashoffset: '0' } },

@@ -1,3 +1,4 @@
+import "@fontsource-variable/fredoka";
 import "@/app/globals.css";
 import LayoutWrapper from "@/components/LayoutWrapper";
 
@@ -6,6 +7,8 @@ export const metadata = {
     default: "Zion Transport System: The Explorer's Encyclopedia",
     template: "%s | Zion Transport System",
   },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "ZTS Explorer", statusBarStyle: "black-translucent" },
   description:
     "Join Zion on missions across air, road, rail, water, space, pipelines, cables and future tech. Discover how the world moves!",
 };

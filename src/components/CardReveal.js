@@ -38,7 +38,7 @@ export default function CardReveal({ vehicle, onClose }) {
       )}
       {open && (
         <div className="flex gap-3">
-          <button type="button" onClick={onClose} className="rounded-full bg-zts-orange px-6 py-3 font-extrabold hover:brightness-110">Add to collection ✓</button>
+          <button type="button" onClick={onClose} className="rounded-full bg-zts-orange px-6 py-3 font-extrabold hover:brightness-110">Add to collection</button>
           <Link href="/cards" className="rounded-full bg-white/15 px-6 py-3 font-extrabold hover:bg-white/25">See all cards</Link>
         </div>
       )}

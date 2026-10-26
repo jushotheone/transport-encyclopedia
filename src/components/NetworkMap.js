@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { divisions } from '@/lib/divisions'
 import { levelsCleared, repairedCount, useExplorer } from '@/lib/explorer'
 import { play } from '@/lib/sound'
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 const RADIUS = 35
 const hubs = divisions.map((d, i) => {
@@ -43,15 +44,14 @@ export default function NetworkMap() {
                 {repaired ? (
                   <>
                     <path d={d} fill="none" stroke={h.accent} strokeWidth="1.4" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 1.5px ${h.accent})` }} />
-                    <text fontSize="4.2" textAnchor="middle" dominantBaseline="central">
-                      {h.emoji}
+                    <circle r="1.7" fill="#fff" style={{ filter: `drop-shadow(0 0 1.5px ${h.accent})` }}>
                       <animateMotion dur="5s" repeatCount="indefinite" path={d} />
-                    </text>
+                    </circle>
                   </>
                 ) : (
                   <>
                     <path d={d} fill="none" stroke={cleared ? '#f59e0b' : '#ef4444'} strokeWidth="0.9" strokeDasharray={cleared ? '3 2' : '1.2 2.6'} strokeLinecap="round" className="animate-glitch" />
-                    <text x={mid.x} y={mid.y} fontSize="4" textAnchor="middle" dominantBaseline="central" className="animate-glitch">⚠️</text>
+                    <path d="M-1.5 1.2 L0 -1.5 L1.5 1.2 Z" transform={`translate(${mid.x} ${mid.y})`} fill="#f59e0b" stroke="#7c2d12" strokeWidth="0.4" strokeLinejoin="round" className="animate-glitch" />
                   </>
                 )}
               </g>
@@ -71,14 +71,14 @@ export default function NetworkMap() {
               style={{ left: `${h.x}%`, top: `${h.y}%` }}
             >
               <span
-                className="flex aspect-square w-[62%] items-center justify-center rounded-full text-[clamp(1.2rem,5.5vw,2.3rem)] shadow-lg"
+                className="flex aspect-square w-[62%] items-center justify-center rounded-full text-white shadow-lg"
                 style={{
                   background: `radial-gradient(circle at 30% 30%, ${h.accent}, #102A43)`,
                   boxShadow: `0 0 ${cleared === 3 ? 22 : 8}px ${h.accent}`,
                 }}
                 aria-hidden="true"
               >
-                {h.emoji}
+                <DivisionIcon slug={h.slug} className="h-[55%] w-[55%]" />
               </span>
               <span className="mt-1 text-[clamp(0.55rem,2.3vw,0.8rem)] font-extrabold leading-tight text-white">{h.name.replace(' Transport', '')}</span>
               <span className="mt-0.5 flex gap-0.5" aria-hidden="true">
@@ -97,7 +97,7 @@ export default function NetworkMap() {
             className="absolute left-1/2 top-1/2 flex aspect-square w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-gradient-to-br from-zts-orange to-amber-300 text-center font-extrabold text-zts-midnight shadow-[0_0_40px_#F28C28]"
           >
             <span className="absolute inset-0 animate-pulsering rounded-full bg-zts-orange/60" aria-hidden="true" />
-            <span className="relative text-3xl" aria-hidden="true">🛰️</span>
+            <Icon name="satellite" className="relative h-8 w-8" />
             <span className="relative text-[clamp(0.5rem,2vw,0.75rem)] leading-tight">Control Room OPEN</span>
           </Link>
         ) : (
@@ -109,7 +109,7 @@ export default function NetworkMap() {
             }}
             className="absolute left-1/2 top-1/2 flex aspect-square w-[22%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-slate-800 text-center text-white ring-2 ring-white/20"
           >
-            <span className="text-2xl" aria-hidden="true">🔒</span>
+            <Icon name="lock" className="h-7 w-7" />
             <span className="text-[clamp(0.45rem,1.8vw,0.7rem)] font-bold leading-tight">Control Room</span>
           </button>
         )}

@@ -5,6 +5,7 @@ import { expeditions, spotKey } from '@/lib/expeditions'
 import { learn, recordWin, useExplorer } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
+import Icon from '@/components/Icon'
 
 export default function Expedition({ division }) {
   const s = useExplorer()
@@ -27,7 +28,7 @@ export default function Expedition({ division }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between font-extrabold text-zts-midnight">
-        <span>🔭 {found.length} of {spots.length} discoveries</span>
+        <span><Icon name="telescope" className="mr-1.5 h-5 w-5" />{found.length} of {spots.length} discoveries</span>
         <span className="flex gap-1" aria-hidden="true">
           {spots.map((p) => <span key={p.id} className={`h-3 w-3 rounded-full ${found.some((f) => f.id === p.id) ? 'bg-green-500' : 'bg-slate-300'}`} />)}
         </span>
@@ -48,7 +49,7 @@ export default function Expedition({ division }) {
             >
               {!got && <span className="absolute inset-0 animate-pulsering rounded-full bg-white/70" aria-hidden="true" />}
               <span className={`relative flex h-11 w-11 items-center justify-center rounded-full shadow-lg ${got ? 'bg-white' : 'bg-white/30 backdrop-blur-sm'}`}>
-                {got ? p.emoji : '❔'}
+                {got ? <Icon name={p.icon} className="h-6 w-6 text-zts-midnight" /> : <Icon name="help" className="h-6 w-6 text-white" />}
               </span>
             </button>
           )
@@ -58,17 +59,17 @@ export default function Expedition({ division }) {
       <div aria-live="polite" className="min-h-24">
         {open ? (
           <div key={open.id} className="animate-pop rounded-3xl bg-zts-midnight p-5 text-white shadow-lg">
-            <p className="text-2xl font-extrabold">{open.emoji} {open.title}</p>
+            <p className="text-2xl font-extrabold"><Icon name={open.icon} className="mr-2 h-7 w-7 text-zts-orange" />{open.title}</p>
             <p className="mt-1 text-lg">{open.fact}</p>
           </div>
         ) : (
-          <p className="rounded-3xl bg-white p-5 text-center font-bold text-zts-midnight shadow">Look closely at the {place.toLowerCase()}. Tap every ❔ to discover what is hiding there!</p>
+          <p className="rounded-3xl bg-white p-5 text-center font-bold text-zts-midnight shadow">Look closely at the {place.toLowerCase()}. Tap every question mark to discover what is hiding there!</p>
         )}
       </div>
 
       {complete && (
         <div className="animate-pop rounded-3xl bg-gradient-to-br from-zts-orange to-amber-400 p-5 text-center text-zts-midnight shadow-xl">
-          <p className="text-4xl" aria-hidden="true">🏅</p>
+          <p className="flex justify-center" aria-hidden="true"><Icon name="medal" className="h-12 w-12" /></p>
           <p className="text-2xl font-extrabold">Expedition complete!</p>
           <p className="font-bold">You found everything at the {place.toLowerCase()}. It is saved in your passport.</p>
         </div>

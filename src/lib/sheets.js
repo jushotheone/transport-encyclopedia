@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { JWT } from 'google-auth-library'
-import { sampleVehicles } from '@/lib/sampleVehicles'
+import { sampleChallenges, sampleVehicles } from '@/lib/sampleVehicles'
 
 // Column order of the "Vehicles" tab. Adding a column? Add it to the END of the sheet
 // and to this list, so existing positions never move.
@@ -111,4 +111,42 @@ export async function getVehicleBySlug(slug) {
   const wanted = slug.toLowerCase().trim()
   const all = await fetchVehicles()
   return all.find((v) => v.slug.toLowerCase() === wanted)
+}
+
+// Optional "Challenges" tab: questions written by Zion (or drafted by a helper and approved by a grown-up).
+// Columns: vehicle slug | question | right answer | wrong 1 | wrong 2 | wrong 3 | explanation | approved
+// A row only appears in the game when the last column says yes, so nothing unchecked reaches children.
+const isYes = (v) => ['yes', 'y', 'true', '1', 'ok', 'approved'].includes(text(v).toLowerCase())
+
+export function parseChallenge(raw) {
+  const [vehicle, question, correct, w1, w2, w3, explanation, approved] = raw.map(text)
+  const wrongs = [w1, w2, w3].filter(Boolean)
+  if (!question || !correct || wrongs.length < 1 || !isYes(approved)) return null
+  return { vehicle, question, correct, wrongs, explanation }
+}
+
+async function loadChallengesFromSheet() {
+  const auth = new JWT({
+    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  })
+  const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, auth)
+  await doc.loadInfo()
+  const sheet = doc.sheetsByTitle['Challenges']
+  if (!sheet) return []
+  const rows = await sheet.getRows()
+  return rows.map((r) => parseChallenge(r._rawData)).filter(Boolean)
+}
+
+const loadChallengesCached = unstable_cache(loadChallengesFromSheet, ['zts-challenges'], { revalidate: 300 })
+
+export async function fetchChallenges() {
+  if (!isConfigured()) return sampleChallenges
+  try {
+    return await loadChallengesCached()
+  } catch (err) {
+    console.error('Could not load challenges from Google Sheets:', err.message)
+    return []
+  }
 }

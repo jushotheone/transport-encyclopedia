@@ -8,14 +8,14 @@ const KEY = 'zts-explorer-v2'
 const OLD_KEY = 'zts-explorer-v1'
 
 export const ranks = [
-  { min: 0, title: 'Trainee Explorer', emoji: '🎒' },
-  { min: 8, title: 'Route Scout', emoji: '🧭' },
-  { min: 25, title: 'Network Navigator', emoji: '🛰️' },
-  { min: 60, title: 'ZTS Mission Captain', emoji: '🚀' },
-  { min: 120, title: 'Future Leader', emoji: '🌟' },
+  { min: 0, title: 'Trainee Explorer', icon: 'backpack' },
+  { min: 8, title: 'Route Scout', icon: 'compass' },
+  { min: 25, title: 'Network Navigator', icon: 'satellite' },
+  { min: 60, title: 'ZTS Mission Captain', icon: 'rocket' },
+  { min: 120, title: 'Future Leader', icon: 'star' },
 ]
 
-export const AVATARS = ['🧑‍🚀', '🦊', '🐯', '🦅', '🐬', '🤖', '🦖', '🐼']
+export const AVATARS = ['rocket', 'cat', 'bird', 'fish', 'dog', 'bot', 'rabbit', 'sprout']
 
 const EMPTY = {
   profile: { name: '', avatar: AVATARS[0] },
@@ -36,6 +36,7 @@ const EMPTY = {
   bonus: 0,
   daily: { day: '', flags: [], claimed: false },
   fieldCount: 0,
+  challenge: { best: 0, daily: { day: '', score: 0, total: 0 } },
 }
 // Server render pretends the intro was seen so crawlers and first paint never get blocked by it.
 const SERVER = { ...EMPTY, intro: true }
@@ -74,6 +75,14 @@ function load() {
       bonus: num(raw.bonus),
       daily: { day: daily.day || '', flags: arr(daily.flags), claimed: !!daily.claimed },
       fieldCount: num(raw.fieldCount),
+      challenge: {
+        best: num(raw.challenge?.best),
+        daily: {
+          day: raw.challenge?.daily?.day || '',
+          score: num(raw.challenge?.daily?.score),
+          total: num(raw.challenge?.daily?.total),
+        },
+      },
     }
   } catch {
     return { ...EMPTY }
@@ -151,6 +160,18 @@ export const recordQuizWin = (slug) => addTo('quizzes', slug, 'play')
 export const recordWin = (key) => addTo('wins', key, 'play')
 // Returns true when the card is new to the collection.
 export const recordCard = (slug) => addTo('cards', slug, 'card')
+
+export function recordRun(correct) {
+  const s = getState()
+  const best = Math.max(s.challenge.best, correct)
+  commit(tick({ ...s, challenge: { ...s.challenge, best } }, 'play'))
+  return best > s.challenge.best
+}
+
+export function recordDaily(day, score, total) {
+  const s = getState()
+  commit(tick({ ...s, challenge: { ...s.challenge, daily: { day, score, total } } }, 'play'))
+}
 
 export const markIntroSeen = () => commit({ ...getState(), intro: true })
 export const replayIntro = () => commit({ ...getState(), intro: false })
@@ -274,18 +295,18 @@ export function badgesOf(s) {
   const threeStars = Object.values(s.levels).some((l) => Object.values(l).includes(3))
   const expeditionsDone = Object.entries(expeditions).filter(([slug, ex]) => ex.spots.every((p) => s.wins.includes(spotKey(slug, p.id)))).length
   return [
-    { id: 'spark', emoji: '⚡', name: 'First Spark', how: 'Clear a Route Builder level', got: cleared >= 1 },
-    { id: 'fixer', emoji: '🔧', name: 'Route Fixer', how: 'Fully repair one route', got: repaired >= 1 },
-    { id: 'perfect', emoji: '🌟', name: 'Perfectionist', how: 'Win a level with 3 stars', got: threeStars },
-    { id: 'hero', emoji: '🛰️', name: 'Network Hero', how: 'Repair all 8 routes', got: repaired >= 8 },
-    { id: 'collector', emoji: '🃏', name: 'Card Collector', how: 'Collect 5 cards', got: s.cards.length >= 5 },
-    { id: 'quiz', emoji: '🧠', name: 'Quiz Whiz', how: 'Win 5 quizzes', got: s.quizzes.length >= 5 },
-    { id: 'trail', emoji: '🔭', name: 'Trailblazer', how: 'Complete an expedition', got: expeditionsDone >= 1 },
-    { id: 'world', emoji: '🌍', name: 'World Explorer', how: 'Complete all 8 expeditions', got: expeditionsDone >= 8 },
-    { id: 'inventor', emoji: '🛠️', name: 'Inventor', how: 'Design a vehicle', got: s.designs.length >= 1 },
-    { id: 'field', emoji: '🔭', name: 'Field Explorer', how: 'Finish 3 field missions', got: s.fieldCount >= 3 },
-    { id: 'spark3', emoji: '🔥', name: 'On Fire', how: 'Reach a 3-day streak', got: s.bestStreak >= 3 },
-    { id: 'week', emoji: '🏅', name: 'Week Warrior', how: 'Reach a 7-day streak', got: s.bestStreak >= 7 },
-    { id: 'scholar', emoji: '📖', name: 'Little Scholar', how: 'Learn 15 things', got: s.learned.length >= 15 },
+    { id: 'spark', icon: 'zap', name: 'First Spark', how: 'Clear a Route Builder level', got: cleared >= 1 },
+    { id: 'fixer', icon: 'wrench', name: 'Route Fixer', how: 'Fully repair one route', got: repaired >= 1 },
+    { id: 'perfect', icon: 'star', name: 'Perfectionist', how: 'Win a level with 3 stars', got: threeStars },
+    { id: 'hero', icon: 'satellite', name: 'Network Hero', how: 'Repair all 8 routes', got: repaired >= 8 },
+    { id: 'collector', icon: 'layers', name: 'Card Collector', how: 'Collect 5 cards', got: s.cards.length >= 5 },
+    { id: 'quiz', icon: 'brain', name: 'Quiz Whiz', how: 'Win 5 quizzes', got: s.quizzes.length >= 5 },
+    { id: 'trail', icon: 'telescope', name: 'Trailblazer', how: 'Complete an expedition', got: expeditionsDone >= 1 },
+    { id: 'world', icon: 'globe', name: 'World Explorer', how: 'Complete all 8 expeditions', got: expeditionsDone >= 8 },
+    { id: 'inventor', icon: 'hammer', name: 'Inventor', how: 'Design a vehicle', got: s.designs.length >= 1 },
+    { id: 'field', icon: 'binoculars', name: 'Field Explorer', how: 'Finish 3 field missions', got: s.fieldCount >= 3 },
+    { id: 'spark3', icon: 'flame', name: 'On Fire', how: 'Reach a 3-day streak', got: s.bestStreak >= 3 },
+    { id: 'week', icon: 'medal', name: 'Week Warrior', how: 'Reach a 7-day streak', got: s.bestStreak >= 7 },
+    { id: 'scholar', icon: 'book', name: 'Little Scholar', how: 'Learn 15 things', got: s.learned.length >= 15 },
   ]
 }

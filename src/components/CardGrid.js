@@ -3,6 +3,7 @@ import { useState } from 'react'
 import ExplorerCard, { LockedCard } from '@/components/ExplorerCard'
 import { divisions } from '@/lib/divisions'
 import { useExplorer } from '@/lib/explorer'
+import Icon, { DivisionIcon, Stars } from '@/components/Icon'
 
 // Shows every vehicle as a collected card or a locked slot. Used for the collection and for division binders.
 export default function CardGrid({ vehicles, filterable = false, flippable = true }) {
@@ -22,7 +23,7 @@ export default function CardGrid({ vehicles, filterable = false, flippable = tru
 
       {filterable && (
         <div className="mb-5 flex flex-wrap gap-2">
-          {[{ slug: 'all', emoji: '🌍', name: 'All' }, ...divisions].map((d) => (
+          {[{ slug: 'all', name: 'All' }, ...divisions].map((d) => (
             <button
               key={d.slug}
               type="button"
@@ -30,7 +31,7 @@ export default function CardGrid({ vehicles, filterable = false, flippable = tru
               aria-pressed={only === d.slug}
               className={`rounded-full px-3 py-1 text-sm font-extrabold ${only === d.slug ? 'bg-zts-midnight text-white' : 'bg-white text-zts-midnight shadow'}`}
             >
-              {d.emoji} {d.name.replace(' Transport', '')}
+              {d.slug === 'all' ? <Icon name="globe" className="mr-1 h-4 w-4" /> : <DivisionIcon slug={d.slug} className="mr-1 h-4 w-4" />}{d.name.replace(' Transport', '')}
             </button>
           ))}
         </div>

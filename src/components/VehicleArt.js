@@ -1,4 +1,7 @@
+import { Star, Zap, Flame, Heart, Cat, Bird, Rocket, Gem } from 'lucide-react'
 import { bodies } from '@/lib/studio'
+
+const STICKERS = { star: Star, zap: Zap, flame: Flame, heart: Heart, cat: Cat, bird: Bird, rocket: Rocket, gem: Gem }
 
 const OUT = '#0b1626'
 
@@ -78,7 +81,11 @@ export default function VehicleArt({ design, className = '' }) {
           </g>
         )}
 
-        {sticker && (
+        {sticker && STICKERS[sticker] && (() => {
+          const Sticker = STICKERS[sticker]
+          return <Sticker x="88" y={body === 'long' ? 62 : 63} width="24" height="24" color="#0b1626" strokeWidth="2.6" fill="#fff" fillOpacity="0.9" />
+        })()}
+        {sticker && !STICKERS[sticker] && (
           <text x="100" y={body === 'long' ? 73 : 74} fontSize="17" textAnchor="middle" dominantBaseline="central">{sticker}</text>
         )}
 
