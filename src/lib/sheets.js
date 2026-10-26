@@ -1,69 +1,114 @@
+import { unstable_cache } from 'next/cache'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { JWT } from 'google-auth-library'
+import { sampleVehicles } from '@/lib/sampleVehicles'
 
-// Auth config
-const auth = new JWT({
-  email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-  key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-  scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-})
+// Column order of the "Vehicles" tab. Adding a column? Add it to the END of the sheet
+// and to this list, so existing positions never move.
+const COLUMNS = [
+  'name',
+  'slug',
+  'system',
+  'image',
+  'description',
+  'funFact',
+  'manufacturers',
+  'more_images',
+  'video_url',
+  'zions_note',
+  'origin_country',
+  'flag_emoji',
+  'bonus_fact',
+  'learn_more',
+  'quiz_question',
+  'quiz_choices',
+  'quiz_answer',
+  'custom_sound_url',
+  'zions_recommendation',
+]
 
-const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, auth)
+const text = (v) => (v ?? '').toString().trim()
+const list = (v, splitter = /[,|•]+/) =>
+  text(v)
+    .split(splitter)
+    .map((s) => s.trim())
+    .filter(Boolean)
+
+export function parseRow(raw) {
+  const cell = (name) => raw[COLUMNS.indexOf(name)]
+  return {
+    name: text(cell('name')),
+    slug: text(cell('slug')),
+    system: text(cell('system')).toLowerCase(),
+    image: text(cell('image')),
+    description: text(cell('description')),
+    funFact: text(cell('funFact')),
+    manufacturers: list(cell('manufacturers')),
+    more_images: list(cell('more_images'), /,/),
+    video_url: text(cell('video_url')),
+    zions_note: text(cell('zions_note')),
+    origin_country: text(cell('origin_country')),
+    flag_emoji: text(cell('flag_emoji')),
+    bonus_fact: text(cell('bonus_fact')),
+    learn_more: text(cell('learn_more')),
+    quiz_question: text(cell('quiz_question')),
+    quiz_choices: list(cell('quiz_choices'), /,/),
+    quiz_answer: text(cell('quiz_answer')),
+    custom_sound_url: text(cell('custom_sound_url')),
+    zions_recommendation: text(cell('zions_recommendation')),
+  }
+}
+
+function isConfigured() {
+  return Boolean(
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+      process.env.GOOGLE_PRIVATE_KEY &&
+      process.env.GOOGLE_SHEET_ID
+  )
+}
+
+async function loadFromSheet() {
+  const auth = new JWT({
+    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+  })
+  const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, auth)
+  await doc.loadInfo()
+
+  const sheet = doc.sheetsByTitle['Vehicles']
+  if (!sheet) throw new Error('The sheet has no tab called "Vehicles"')
+
+  const rows = await sheet.getRows()
+  return rows
+    .map((row) => parseRow(row._rawData))
+    .filter((v) => v.name && v.slug)
+}
+
+// The sheet is read at most once every five minutes, however many pages are viewed.
+const loadCached = unstable_cache(loadFromSheet, ['zts-vehicles'], { revalidate: 300 })
 
 export async function fetchVehicles() {
-  await doc.loadInfo()
-  const sheet = doc.sheetsByTitle['Vehicles']
-  const rows = await sheet.getRows()
-
-  return rows.map((row) => {
-    const raw = row._rawData
-
-    return {
-      name: raw[0]?.trim() || '',
-      slug: raw[1]?.trim() || '',
-      system: raw[2]?.toLowerCase().trim() || '',
-      image: raw[3]?.trim() || '',
-      description: raw[4]?.trim() || '',
-      funFact: raw[5]?.trim() || '',
-      manufacturers: raw[6]
-        ? raw[6]
-            .split(/[,|•]+/) // supports commas, pipes, or bullets as delimiters
-            .map((m) => m.trim())
-            .filter(Boolean)
-        : [],
-      more_images: raw[7]
-        ? raw[7].split(',').map((img) => img.trim())
-        : [],
-      video_url: raw[8]?.trim() || '',
-      zions_note: raw[9]?.trim() || '',
-      origin_country: raw[10]?.trim() || '',
-      flag_emoji: raw[11]?.trim() || '',
-      bonus_fact: raw[12]?.trim() || '',
-      learn_more: raw[13]?.trim() || '',
-      quiz_question: raw[14]?.trim() || '',
-      quiz_choices: raw[15]
-        ? raw[15].split(',').map((q) => q.trim())
-        : [],
-      quiz_answer: raw[16]?.trim() || '',
-      custom_sound_url: raw[17]?.trim() || '',
-      zions_recommendation: raw[18]?.trim() || '',
-    }
-  })
+  if (!isConfigured()) {
+    console.warn('Google Sheet is not configured, showing sample vehicles.')
+    return sampleVehicles
+  }
+  try {
+    return await loadCached()
+  } catch (err) {
+    console.error('Could not load vehicles from Google Sheets:', err.message)
+    return []
+  }
 }
 
 export async function getVehiclesBySystem(system) {
+  const wanted = system.toLowerCase().trim()
   const all = await fetchVehicles()
-  const filtered = all.filter(
-    (v) => v.system === system.toLowerCase().trim()
-  )
-
-  console.log('SYSTEM:', system)
-  console.log('VEHICLES:', filtered)
-
-  return filtered
+  return all.filter((v) => v.system === wanted)
 }
 
 export async function getVehicleBySlug(slug) {
+  const wanted = slug.toLowerCase().trim()
   const all = await fetchVehicles()
-  return all.find((v) => v.slug === slug.trim())
+  return all.find((v) => v.slug.toLowerCase() === wanted)
 }

@@ -1,155 +1,189 @@
-// app/vehicles/[slug]/page.js
-import { fetchVehicles } from "@/lib/sheets";
-import Image from "next/image";
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { fetchVehicles } from '@/lib/sheets'
+import { getDivision } from '@/lib/divisions'
+import { extractYouTubeID, safeUrl } from '@/lib/utils'
+import VehicleCard from '@/components/VehicleCard'
+import Quiz from '@/components/Quiz'
+import ReadAloud from '@/components/ReadAloud'
+import SoundButton from '@/components/SoundButton'
+import ExplorerTracker from '@/components/ExplorerTracker'
 
-function extractYouTubeID(url) {
-  const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]+)/);
-  return match ? match[1] : null;
+export const revalidate = 300
+
+async function findVehicle(slug) {
+  const vehicles = await fetchVehicles()
+  const vehicle = vehicles.find((v) => v.slug.toLowerCase() === slug.toLowerCase())
+  return { vehicles, vehicle }
 }
-export default async function VehiclePage(props) {
-  const { slug } = await props.params;
-  const vehicles = await fetchVehicles();
-  const vehicle = vehicles.find((v) => v.slug === slug);
 
-  if (!vehicle) return <div className="p-6">Vehicle not found.</div>;
+export async function generateMetadata({ params }) {
+  const { vehicle } = await findVehicle((await params).slug)
+  if (!vehicle) return {}
+  return { title: vehicle.name, description: vehicle.description.slice(0, 160) }
+}
 
-  const youtubeId = extractYouTubeID(vehicle.video_url);
-  const imageUrls = [vehicle.image, ...(vehicle.more_images || [])].filter(Boolean);
+function FactBox({ title, children, className }) {
+  return (
+    <section className={`rounded-3xl p-6 shadow ${className}`}>
+      <h2 className="text-xl font-extrabold">{title}</h2>
+      <div className="mt-2 text-lg">{children}</div>
+    </section>
+  )
+}
+
+export default async function VehiclePage({ params }) {
+  const { slug } = await params
+  const { vehicles, vehicle } = await findVehicle(slug)
+  if (!vehicle) notFound()
+
+  const division = getDivision(vehicle.system) || { name: vehicle.system, slug: '', emoji: '🚦', accent: '#1D9BF0', mission: '' }
+  const images = [vehicle.image, ...vehicle.more_images].map(safeUrl).filter(Boolean)
+  const youtubeId = extractYouTubeID(vehicle.video_url)
+  const links = vehicle.learn_more.split(',').map(safeUrl).filter(Boolean)
+  const related = vehicles.filter((v) => v.system === vehicle.system && v.slug !== vehicle.slug).slice(0, 3)
+  const readText = [vehicle.name + '.', vehicle.description, vehicle.funFact && 'Fun fact. ' + vehicle.funFact, vehicle.bonus_fact && 'Did you know? ' + vehicle.bonus_fact]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* 🖼️ Big Image or Slideshow */}
-      <section>
-        <h2 className="text-xl font-semibold mb-2">🖼️ Big Image</h2>
-        {imageUrls.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {imageUrls.map((src, i) => (
+    <>
+      <ExplorerTracker slug={vehicle.slug} />
+      <header
+        className="starfield px-4 py-10 text-white"
+        style={{ background: `linear-gradient(135deg, ${division.accent}, #102A43)` }}
+      >
+        <div className="mx-auto max-w-4xl">
+          <nav aria-label="Breadcrumb" className="text-sm font-bold text-white/80">
+            <Link href="/" className="hover:text-white">Mission control</Link>
+            {division.slug && (
+              <>
+                {' / '}
+                <Link href={`/systems/${division.slug}`} className="hover:text-white">{division.name}</Link>
+              </>
+            )}
+          </nav>
+          <p className="mt-4 text-sm font-extrabold uppercase tracking-widest text-white/80">Mission file</p>
+          <h1 className="text-4xl font-extrabold sm:text-5xl">
+            <span aria-hidden="true">{division.emoji}</span> {vehicle.name}
+          </h1>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <ReadAloud text={readText} />
+            {safeUrl(vehicle.custom_sound_url) && <SoundButton src={safeUrl(vehicle.custom_sound_url)} label={vehicle.name} />}
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-4xl space-y-8 px-4 py-10">
+        {images.length > 0 ? (
+          <section aria-label={`Pictures of ${vehicle.name}`} className="grid gap-4 sm:grid-cols-2">
+            {images.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
-                key={i}
+                key={src}
                 src={src}
-                alt={`${vehicle.name} image ${i + 1}`}
-                className="w-full h-60 object-cover rounded shadow"
+                alt={`${vehicle.name}, picture ${i + 1}`}
+                className={`w-full rounded-3xl object-cover shadow-lg ${i === 0 && images.length % 2 === 1 ? 'h-80 sm:col-span-2' : 'h-60'}`}
               />
             ))}
-          </div>
+          </section>
         ) : (
-          <div className="h-60 bg-gray-200 flex items-center justify-center text-gray-500 rounded">
-            No image added yet. Zion will upload one soon!
+          <div className="flex h-48 items-center justify-center rounded-3xl bg-white text-center text-zts-graphite/70 shadow">
+            📸 Zion is still hunting for the perfect photo of this one!
           </div>
         )}
-      </section>
 
-      {/* 📖 Name & Category */}
-      <section>
-        <h1 className="text-3xl font-bold">
-          📖 {vehicle.name}{" "}
-          <span className="text-base text-purple-700 font-medium">– {vehicle.system} Transport</span>
-        </h1>
-      </section>
-
-      {/* 📹 Embedded YouTube Video */}
-      {youtubeId && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">📹 Watch it in Action</h2>
-          <div className="aspect-w-16 aspect-h-9">
-            <iframe
-              className="w-full h-72 rounded shadow"
-              src={`https://www.youtube.com/embed/${youtubeId}`}
-              title="Vehicle video"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
+        <section aria-labelledby="explains" className="rounded-3xl border-l-8 bg-white p-6 shadow" style={{ borderColor: division.accent }}>
+          <h2 id="explains" className="text-xl font-extrabold text-zts-midnight">🗣️ Zion explains</h2>
+          {vehicle.description ? (
+            <p className="mt-2 text-lg leading-relaxed">{vehicle.description}</p>
+          ) : (
+            <p className="mt-2 text-zts-graphite/70">Zion hasn&apos;t written this part yet. Stay tuned!</p>
+          )}
+          {vehicle.zions_note && <p className="mt-3 font-bold italic" style={{ color: division.accent }}>Zion says: &ldquo;{vehicle.zions_note}&rdquo;</p>}
         </section>
-      )}
 
-      {/* 🗣️ Zion’s Description */}
-      <section>
-        <h2 className="text-xl font-semibold mb-2">🗣️ Zion Explains</h2>
-        {vehicle.description ? (
-          <blockquote className="p-4 border-l-4 border-purple-600 bg-purple-50 text-purple-900 rounded">
-            “{vehicle.description}”
-            {vehicle.zions_note && (
-              <p className="mt-2 italic text-sm">Zion says: {vehicle.zions_note}</p>
-            )}
-          </blockquote>
-        ) : (
-          <p className="text-gray-500">Zion hasn’t written the description yet. Stay tuned!</p>
+        {vehicle.funFact && (
+          <FactBox title="🎉 Fun fact!" className="bg-yellow-100 text-yellow-900">{vehicle.funFact}</FactBox>
         )}
-      </section>
 
-      {/* 🎉 Fun Fact! */}
-      {vehicle.funFact && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">🎉 Fun Fact!</h2>
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded text-yellow-900 shadow">
-            {vehicle.funFact}
-          </div>
-        </section>
-      )}
+        {youtubeId && (
+          <section aria-labelledby="watch">
+            <h2 id="watch" className="mb-2 text-xl font-extrabold text-zts-midnight">📹 Watch it in action</h2>
+            <div className="aspect-video overflow-hidden rounded-3xl shadow-lg">
+              <iframe
+                className="h-full w-full"
+                src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
+                title={`Video: ${vehicle.name}`}
+                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
+          </section>
+        )}
 
-      {/* 🏭 Manufacturers */}
-      {Array.isArray(vehicle.manufacturers) && vehicle.manufacturers.length > 0 && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">🏭 Who Builds It?</h2>
-          <ul className="list-disc ml-6 space-y-1 text-gray-800">
-            {vehicle.manufacturers.map((m, i) => (
-              <li key={i}>{m}</li>
-            ))}
-          </ul>
-        </section>
-      )}
+        <Quiz
+          slug={vehicle.slug}
+          question={vehicle.quiz_question}
+          choices={vehicle.quiz_choices}
+          answer={vehicle.quiz_answer}
+          accent={division.accent}
+        />
 
-      {/* 📍 Origin Country */}
-      {vehicle.origin_country && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">📍 Origin Country</h2>
-          <p>
-            <span className="text-2xl mr-2">
-              {vehicle.flag_emoji || "🌍"}
-            </span>
-            {vehicle.origin_country}
-          </p>
-        </section>
-      )}
+        <div className="grid gap-6 sm:grid-cols-2">
+          {vehicle.origin_country && (
+            <FactBox title="📍 Where is it from?" className="bg-white">
+              <span className="mr-2 text-3xl">{vehicle.flag_emoji || '🌍'}</span>
+              {vehicle.origin_country}
+            </FactBox>
+          )}
+          {vehicle.manufacturers.length > 0 && (
+            <FactBox title="🏭 Who builds it?" className="bg-white">
+              <ul className="list-disc pl-5">
+                {vehicle.manufacturers.map((m) => <li key={m}>{m}</li>)}
+              </ul>
+            </FactBox>
+          )}
+        </div>
 
-      {/* 🧠 Bonus Fact */}
-      {vehicle.bonus_fact && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">🧠 Did You Know?</h2>
-          <div className="bg-blue-100 border-l-4 border-blue-400 p-4 rounded text-blue-900 shadow">
-            {vehicle.bonus_fact}
-          </div>
-        </section>
-      )}
+        {vehicle.bonus_fact && (
+          <FactBox title="🧠 Did you know?" className="bg-blue-100 text-blue-900">{vehicle.bonus_fact}</FactBox>
+        )}
 
-      {/* 📚 Want to Learn More */}
-      {vehicle.learn_more && (
-        <section>
-          <h2 className="text-xl font-semibold mb-2">📚 Want to Learn More?</h2>
-          <ul className="list-disc ml-6 text-blue-700 underline">
-            {vehicle.learn_more.split(",").map((link, i) => (
-              <li key={i}>
-                <a href={link.trim()} target="_blank" rel="noopener noreferrer">
-                  {link.trim()}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+        {vehicle.zions_recommendation && (
+          <FactBox title="💬 Zion recommends…" className="bg-zts-midnight text-white">{vehicle.zions_recommendation}</FactBox>
+        )}
 
-      {/* 🚀 Coming Soon */}
-      <section>
-        <h2 className="text-2xl font-bold text-purple-600 mt-12">🚀 Coming Soon — Powered by Zion!</h2>
-        <ul className="mt-4 space-y-2 text-sm text-gray-700 bg-white rounded p-4 border">
-          <li>🎮 <strong>Quiz Mode</strong> – Answer fun questions to test what you’ve learned!</li>
-          <li>💬 <strong>Zion Recommends…</strong> – Zion’s personal picks and favourites!</li>
-          <li>🧩 <strong>Build-Your-Own Transport</strong> – Mix parts and design your dream machine!</li>
-          <li>🔤 <strong>Text-to-Speech</strong> – Hear the page read out loud for easy learning.</li>
-        </ul>
-      </section>
-    </div>
-  );
+        {links.length > 0 && (
+          <section aria-labelledby="more">
+            <h2 id="more" className="text-xl font-extrabold text-zts-midnight">📚 Want to learn more?</h2>
+            <p className="text-sm text-zts-graphite/70">These open other websites. Ask a grown-up if you are not sure.</p>
+            <ul className="mt-2 list-disc space-y-1 pl-6">
+              {links.map((href) => (
+                <li key={href}>
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="break-all font-bold text-zts-blue underline">
+                    {new URL(href).hostname.replace(/^www\./, '')}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {related.length > 0 && (
+          <section aria-labelledby="next">
+            <h2 id="next" className="mb-4 text-2xl font-extrabold text-zts-midnight">Next on your mission</h2>
+            <ul className="grid gap-6 sm:grid-cols-3">
+              {related.map((v) => (
+                <li key={v.slug}>
+                  <VehicleCard vehicle={v} accent={division.accent} emoji={division.emoji} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    </>
+  )
 }

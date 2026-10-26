@@ -2,3 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-zts-white font-display text-zts-graphite antialiased;
+  }
+  :focus-visible {
+    @apply outline-none ring-4 ring-zts-orange ring-offset-2;
+  }
+}
+
+@layer components {
+  .starfield {
+    background-image:
+      radial-gradient(1.5px 1.5px at 20px 30px, #fff9, transparent),
+      radial-gradient(1.5px 1.5px at 90px 80px, #fff8, transparent),
+      radial-gradient(2px 2px at 160px 40px, #fff7, transparent),
+      radial-gradient(1px 1px at 220px 120px, #fff9, transparent);
+    background-size: 240px 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
