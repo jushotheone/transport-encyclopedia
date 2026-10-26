@@ -5,6 +5,14 @@ export const metadata = { title: 'Play', description: 'Games, missions and puzzl
 
 const games = [
   {
+    href: '/play/fact',
+    emoji: '🕵️',
+    title: 'Fact or Fake?',
+    blurb: 'Ten quick claims. Spot the real facts and catch the fakes. Takes about one minute!',
+    skill: 'Thinking: check before you believe',
+    colour: '#008C95',
+  },
+  {
     href: '/',
     emoji: '🧩',
     title: 'Route Builder',

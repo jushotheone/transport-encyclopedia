@@ -17,7 +17,8 @@ export default function HudBar({ totalCards = 0 }) {
       <div className="flex items-center gap-3">
         <span className="text-4xl" aria-hidden="true">{rank.emoji}</span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-extrabold">{rank.title}</p>
+          <p className="truncate text-xs font-bold text-zts-blue">{s.profile.avatar} {s.profile.name || 'Explorer'}</p>
+          <p className="truncate text-lg font-extrabold leading-tight">{rank.title}</p>
           <div className="mt-1 h-3 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to next rank">
             <div className="h-full rounded-full bg-gradient-to-r from-zts-blue to-zts-orange transition-all duration-700" style={{ width: `${pct}%` }} />
           </div>

@@ -36,6 +36,7 @@ function buildCards(vehicle, division, related, images, youtubeId) {
   const cards = [
     {
       type: 'cover',
+      slug: vehicle.system,
       name: vehicle.name,
       emoji: division.emoji,
       image: images[0] || null,

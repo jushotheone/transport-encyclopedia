@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import Garage from '@/components/Garage'
-import { badgesOf, rankFor, ranks, replayIntro, streakMilestones, useExplorer, xpOf } from '@/lib/explorer'
+import { AVATARS, badgesOf, rankFor, ranks, replayIntro, setProfile, streakMilestones, useExplorer, xpOf } from '@/lib/explorer'
 import { useRouter } from 'next/navigation'
 
 export default function PassportView() {
@@ -16,8 +16,21 @@ export default function PassportView() {
   return (
     <div className="space-y-8">
       <section className="rounded-3xl bg-gradient-to-br from-zts-midnight to-slate-900 p-6 text-center text-white shadow-xl">
-        <p className="text-6xl" aria-hidden="true">{rank.emoji}</p>
-        <h2 className="text-3xl font-extrabold">{rank.title}</h2>
+        <p className="text-6xl" aria-hidden="true">{s.profile.avatar}</p>
+        <label className="sr-only" htmlFor="pname">Your explorer name</label>
+        <input
+          id="pname"
+          value={s.profile.name}
+          onChange={(e) => setProfile({ name: e.target.value.slice(0, 14) })}
+          placeholder="Your explorer name"
+          className="mt-1 w-full max-w-xs rounded-xl bg-white/10 px-3 py-1 text-center text-2xl font-extrabold outline-none placeholder:text-white/30 focus:bg-white/20"
+        />
+        <div className="mt-2 flex flex-wrap justify-center gap-1" role="radiogroup" aria-label="Choose your explorer">
+          {AVATARS.map((a) => (
+            <button key={a} type="button" role="radio" aria-checked={s.profile.avatar === a} aria-label={`Explorer ${a}`} onClick={() => setProfile({ avatar: a })} className={`h-10 w-10 rounded-full text-xl ${s.profile.avatar === a ? 'bg-zts-orange' : 'bg-white/10 hover:bg-white/20'}`}>{a}</button>
+          ))}
+        </div>
+        <h2 className="mt-3 text-2xl font-extrabold">{rank.emoji} {rank.title}</h2>
         <p className="text-white/70">{xp} XP</p>
         <ul className="mt-4 flex flex-wrap justify-center gap-2" aria-label="All ranks">
           {ranks.map((r) => (

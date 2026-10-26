@@ -22,7 +22,7 @@ export default function DailyPanel({ vehicleSlugs = [] }) {
   const tasks = [
     { flag: 'puzzle', emoji: '🧩', text: 'Repair part of a route', href: nextRoute ? `/play/route/${nextRoute.slug}` : '/control-room' },
     { flag: 'card', emoji: '🃏', text: 'Discover a new vehicle card', href: nextCard ? `/vehicles/${nextCard}` : '/cards' },
-    { flag: 'play', emoji: '🎮', text: 'Win a quiz or game', href: '/play' },
+    { flag: 'play', emoji: '🎮', text: 'Win a quiz or game (try Fact or Fake!)', href: '/play/fact' },
   ]
 
   function doField() {

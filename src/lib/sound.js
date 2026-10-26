@@ -69,3 +69,30 @@ export function play(name) {
   const a = audio()
   if (a && sounds[name]) sounds[name](a)
 }
+
+// Gentle generative soundtrack: random notes from a pentatonic scale, so it always sounds calm and never repeats exactly.
+const PENTATONIC = [0, 2, 4, 7, 9]
+let musicTimer = null
+let beat = 0
+
+export function stopMusic() {
+  if (musicTimer) clearInterval(musicTimer)
+  musicTimer = null
+}
+
+export function startMusic(mood = 'map') {
+  stopMusic()
+  const state = getState()
+  if (!state.music || !audio()) return
+  const every = mood === 'puzzle' ? 520 : 820
+  musicTimer = setInterval(() => {
+    const a = audio()
+    if (!a) return
+    const note = (deg, oct) => 261.63 * 2 ** ((deg + oct * 12) / 12)
+    const deg = PENTATONIC[Math.floor(Math.random() * PENTATONIC.length)]
+    tone(a, note(deg, Math.random() < 0.25 ? 1 : 0), 0, 1.8, 'sine', 0.03)
+    if (beat % 4 === 0) tone(a, note(PENTATONIC[(beat / 4) % 5], -1), 0, 3, 'triangle', 0.025)
+    if (mood === 'puzzle' && beat % 2 === 1) tone(a, note(deg, 1), 0.15, 0.4, 'sine', 0.015)
+    beat++
+  }, every)
+}

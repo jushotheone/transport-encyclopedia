@@ -14,7 +14,11 @@ export const ranks = [
   { min: 120, title: 'Future Leader', emoji: '🌟' },
 ]
 
+export const AVATARS = ['🧑‍🚀', '🦊', '🐯', '🦅', '🐬', '🤖', '🦖', '🐼']
+
 const EMPTY = {
+  profile: { name: '', avatar: AVATARS[0] },
+  music: false,
   visited: [],
   quizzes: [],
   wins: [],
@@ -46,7 +50,13 @@ function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || 'null') || JSON.parse(localStorage.getItem(OLD_KEY) || 'null') || {}
     const daily = raw.daily && typeof raw.daily === 'object' ? raw.daily : {}
+    const prof = raw.profile && typeof raw.profile === 'object' ? raw.profile : {}
     return {
+      profile: {
+        name: typeof prof.name === 'string' ? prof.name.slice(0, 14) : '',
+        avatar: AVATARS.includes(prof.avatar) ? prof.avatar : AVATARS[0],
+      },
+      music: !!raw.music,
       visited: arr(raw.visited),
       quizzes: arr(raw.quizzes),
       wins: arr(raw.wins),
@@ -144,13 +154,15 @@ export const recordCard = (slug) => addTo('cards', slug, 'card')
 export const markIntroSeen = () => commit({ ...getState(), intro: true })
 export const replayIntro = () => commit({ ...getState(), intro: false })
 export const setMuted = (muted) => commit({ ...getState(), muted })
+export const setMusic = (music) => commit({ ...getState(), music })
+export const setProfile = (patch) => commit({ ...getState(), profile: { ...getState().profile, ...patch } })
 
 // The learning log: each fact is stored once, and the child is told as they earn it.
-export function learn(id, text) {
+export function learn(id, text, quiet = false) {
   const s = getState()
   if (s.learned.some((l) => l.id === id)) return false
   commit({ ...s, learned: [...s.learned, { id, text }] })
-  toast(`You learned: ${text}`)
+  if (!quiet) toast(`You learned: ${text}`)
   return true
 }
 

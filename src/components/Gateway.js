@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { divisions } from '@/lib/divisions'
-import { markIntroSeen, useExplorer } from '@/lib/explorer'
+import { AVATARS, markIntroSeen, setProfile, useExplorer } from '@/lib/explorer'
 import { play } from '@/lib/sound'
 
 // The Future Gateway: stillness, then transport paths emerge and join into one living network.
@@ -13,7 +13,9 @@ const STEPS = [
 ]
 
 export default function Gateway() {
-  const { intro } = useExplorer()
+  const { intro, profile } = useExplorer()
+  const [name, setName] = useState('')
+  const [avatar, setAvatar] = useState(AVATARS[0])
   const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState(0)
   const [leaving, setLeaving] = useState(false)
@@ -91,17 +93,45 @@ export default function Gateway() {
         <p className="text-3xl font-extrabold sm:text-4xl">{cur.text}</p>
         {cur.sub && <p className="mt-2 text-lg text-white/70">{cur.sub}</p>}
         {step === 0 && (
-          <button
-            type="button"
-            autoFocus
-            onClick={() => {
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              setProfile({ name: name.trim() || profile.name || 'Explorer', avatar })
               play('rise')
               setStep(1)
             }}
-            className="mt-6 rounded-full bg-zts-orange px-8 py-3 text-lg font-extrabold shadow-lg hover:brightness-110"
+            className="mt-5 space-y-4"
           >
-            I&apos;m ready ✨
-          </button>
+            <div>
+              <label htmlFor="explorer-name" className="block text-sm font-bold text-white/80">What is your explorer name?</label>
+              <input
+                id="explorer-name"
+                value={name}
+                onChange={(e) => setName(e.target.value.slice(0, 14))}
+                placeholder="Explorer"
+                autoComplete="off"
+                className="mt-1 w-full rounded-2xl bg-white/10 px-4 py-3 text-center text-xl font-extrabold text-white outline-none placeholder:text-white/30 focus:bg-white/20"
+              />
+            </div>
+            <div className="flex flex-wrap justify-center gap-2" role="radiogroup" aria-label="Choose your explorer">
+              {AVATARS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  role="radio"
+                  aria-checked={avatar === a}
+                  aria-label={`Explorer ${a}`}
+                  onClick={() => setAvatar(a)}
+                  className={`h-12 w-12 rounded-full text-2xl transition ${avatar === a ? 'bg-zts-orange ring-4 ring-white/60' : 'bg-white/10 hover:bg-white/20'}`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+            <button type="submit" className="rounded-full bg-zts-orange px-8 py-3 text-lg font-extrabold shadow-lg hover:brightness-110">
+              I&apos;m ready ✨
+            </button>
+          </form>
         )}
       </div>
     </div>

@@ -5,6 +5,7 @@ import Quiz from '@/components/Quiz'
 import ReadAloud from '@/components/ReadAloud'
 import SoundButton from '@/components/SoundButton'
 import CardReveal from '@/components/CardReveal'
+import SceneArt from '@/components/SceneArt'
 import { learn, recordCard } from '@/lib/explorer'
 import { play } from '@/lib/sound'
 
@@ -40,7 +41,10 @@ function CardBody({ card, accent, slug }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={card.image} alt={card.name} className="absolute inset-0 h-full w-full object-cover" />
           ) : (
-            <span className="absolute inset-x-0 top-8 text-8xl" aria-hidden="true">{card.emoji}</span>
+            <>
+              <SceneArt slug={card.slug} className="absolute inset-0 h-full w-full" />
+              <span className="absolute inset-x-0 top-8 text-8xl drop-shadow-lg" aria-hidden="true">{card.emoji}</span>
+            </>
           )}
           <div className="relative w-full bg-gradient-to-t from-black/80 to-transparent p-6 pt-16">
             <h2 className="text-4xl font-extrabold">{card.name}</h2>

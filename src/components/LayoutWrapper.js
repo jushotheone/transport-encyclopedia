@@ -3,6 +3,7 @@ import SoundToggle from '@/components/SoundToggle'
 import StreakChip from '@/components/StreakChip'
 import Toaster from '@/components/Toaster'
 import DailyCheckIn from '@/components/DailyCheckIn'
+import Music from '@/components/Music'
 
 const links = [
   { href: '/', label: '🗺️ Map' },
@@ -47,6 +48,7 @@ export default function LayoutWrapper({ children }) {
       <main id="main" className="flex-1">{children}</main>
       <Toaster />
       <DailyCheckIn />
+      <Music />
 
       <footer className="bg-zts-midnight px-4 py-8 text-center text-sm text-white/80">
         <p className="font-bold text-white">Built by Zion and family 🚀</p>

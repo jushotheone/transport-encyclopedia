@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getDivision } from '@/lib/divisions'
 import { rarityOf } from '@/lib/story'
 import { safeUrl } from '@/lib/utils'
+import SceneArt from '@/components/SceneArt'
 
 // A collectible vehicle card. Rare cards get a holographic shine that follows the finger or mouse.
 export default function ExplorerCard({ vehicle, flippable = false, flipped: forced, className = '' }) {
@@ -60,7 +61,10 @@ export default function ExplorerCard({ vehicle, flippable = false, flipped: forc
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={img} alt={vehicle.name} loading="lazy" className="h-full w-full object-cover" />
               ) : (
-                <span className="flex h-full items-center justify-center text-6xl" aria-hidden="true">{division.emoji}</span>
+                <>
+                  <SceneArt slug={vehicle.system} className="absolute inset-0 h-full w-full" />
+                  <span className="relative flex h-full items-center justify-center text-7xl drop-shadow-lg" aria-hidden="true">{division.emoji}</span>
+                </>
               )}
             </div>
             <p className="mt-1.5 truncate text-center text-base font-extrabold leading-tight">{vehicle.name}</p>

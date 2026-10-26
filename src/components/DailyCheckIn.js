@@ -1,11 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { checkIn } from '@/lib/explorer'
+import { checkIn, useExplorer } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
 
 export default function DailyCheckIn() {
   const [reward, setReward] = useState(null)
+  const { profile } = useExplorer()
 
   useEffect(() => {
     const r = checkIn()
@@ -24,7 +25,7 @@ export default function DailyCheckIn() {
       <div className="animate-pop w-full max-w-sm rounded-3xl bg-gradient-to-b from-zts-midnight to-slate-900 p-8 text-center text-white shadow-2xl ring-4 ring-zts-orange">
         <p className="animate-floaty text-7xl" aria-hidden="true">🔥</p>
         <h2 className="mt-2 text-3xl font-extrabold">
-          {streak === 1 ? (lost ? 'Fresh start!' : 'Welcome, explorer!') : `Day ${streak} streak!`}
+          {streak === 1 ? (lost ? 'Fresh start!' : `Welcome, ${profile.name || 'explorer'}!`) : `Day ${streak} streak, ${profile.name || 'explorer'}!`}
         </h2>
         <p className="mt-2 text-lg text-white/85">
           {streak === 1
