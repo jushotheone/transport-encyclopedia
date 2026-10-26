@@ -4,6 +4,7 @@ import { getVehiclesBySystem } from '@/lib/sheets'
 import { divisions, getDivision } from '@/lib/divisions'
 import CardGrid from '@/components/CardGrid'
 import RouteLadder from '@/components/RouteLadder'
+import ExpeditionLink from '@/components/ExpeditionLink'
 
 export const revalidate = 300
 
@@ -39,6 +40,7 @@ export default async function SystemPage({ params }) {
 
       <div className="mx-auto max-w-4xl space-y-8 px-4 py-8">
         <RouteLadder division={division} />
+        <ExpeditionLink division={division} />
         <section aria-labelledby="binder-h">
           <h2 id="binder-h" className="mb-1 text-2xl font-extrabold text-zts-midnight">🃏 {division.name.replace(' Transport', '')} cards</h2>
           <p className="mb-4 text-zts-graphite/80">Tap a locked card to open its mission deck and collect it.</p>

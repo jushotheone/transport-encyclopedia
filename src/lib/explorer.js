@@ -1,6 +1,7 @@
 'use client'
 import { useSyncExternalStore } from 'react'
 import { toast } from '@/lib/toast'
+import { expeditions, spotKey } from '@/lib/expeditions'
 
 // All explorer progress lives in this browser only (no accounts, no personal data).
 const KEY = 'zts-explorer-v2'
@@ -271,6 +272,7 @@ export function badgesOf(s) {
   const repaired = Object.keys(s.levels).filter((d) => isRepaired(s, d)).length
   const cleared = Object.values(s.levels).reduce((n, l) => n + Object.values(l).filter((x) => x > 0).length, 0)
   const threeStars = Object.values(s.levels).some((l) => Object.values(l).includes(3))
+  const expeditionsDone = Object.entries(expeditions).filter(([slug, ex]) => ex.spots.every((p) => s.wins.includes(spotKey(slug, p.id)))).length
   return [
     { id: 'spark', emoji: '⚡', name: 'First Spark', how: 'Clear a Route Builder level', got: cleared >= 1 },
     { id: 'fixer', emoji: '🔧', name: 'Route Fixer', how: 'Fully repair one route', got: repaired >= 1 },
@@ -278,6 +280,8 @@ export function badgesOf(s) {
     { id: 'hero', emoji: '🛰️', name: 'Network Hero', how: 'Repair all 8 routes', got: repaired >= 8 },
     { id: 'collector', emoji: '🃏', name: 'Card Collector', how: 'Collect 5 cards', got: s.cards.length >= 5 },
     { id: 'quiz', emoji: '🧠', name: 'Quiz Whiz', how: 'Win 5 quizzes', got: s.quizzes.length >= 5 },
+    { id: 'trail', emoji: '🔭', name: 'Trailblazer', how: 'Complete an expedition', got: expeditionsDone >= 1 },
+    { id: 'world', emoji: '🌍', name: 'World Explorer', how: 'Complete all 8 expeditions', got: expeditionsDone >= 8 },
     { id: 'inventor', emoji: '🛠️', name: 'Inventor', how: 'Design a vehicle', got: s.designs.length >= 1 },
     { id: 'field', emoji: '🔭', name: 'Field Explorer', how: 'Finish 3 field missions', got: s.fieldCount >= 3 },
     { id: 'spark3', emoji: '🔥', name: 'On Fire', how: 'Reach a 3-day streak', got: s.bestStreak >= 3 },
