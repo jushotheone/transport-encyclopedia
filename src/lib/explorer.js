@@ -9,39 +9,33 @@ export const ranks = [
   { min: 14, title: 'Future Leader', emoji: '🌟' },
 ]
 
+const arr = (v) => (Array.isArray(v) ? v : [])
+
 export function readProgress() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(KEY) || '{}')
-    return {
-      visited: Array.isArray(parsed.visited) ? parsed.visited : [],
-      quizzes: Array.isArray(parsed.quizzes) ? parsed.quizzes : [],
-    }
+    const p = JSON.parse(localStorage.getItem(KEY) || '{}')
+    return { visited: arr(p.visited), quizzes: arr(p.quizzes), wins: arr(p.wins) }
   } catch {
-    return { visited: [], quizzes: [] }
+    return { visited: [], quizzes: [], wins: [] }
   }
 }
 
-function save(progress) {
+function add(field, value) {
+  const p = readProgress()
+  if (p[field].includes(value)) return
   try {
-    localStorage.setItem(KEY, JSON.stringify(progress))
+    localStorage.setItem(KEY, JSON.stringify({ ...p, [field]: [...p[field], value] }))
   } catch {
     // storage blocked: progress simply will not persist
   }
 }
 
-export function recordVisit(slug) {
-  const p = readProgress()
-  if (!p.visited.includes(slug)) save({ ...p, visited: [...p.visited, slug] })
-}
+export const recordVisit = (slug) => add('visited', slug)
+export const recordQuizWin = (slug) => add('quizzes', slug)
+// Game wins use keys like "mission:snow-medicine" or "guess:helicopter".
+export const recordWin = (key) => add('wins', key)
 
-export function recordQuizWin(slug) {
-  const p = readProgress()
-  if (!p.quizzes.includes(slug)) save({ ...p, quizzes: [...p.quizzes, slug] })
-}
-
-export function scoreOf(p) {
-  return p.visited.length + p.quizzes.length
-}
+export const scoreOf = (p) => p.visited.length + p.quizzes.length + p.wins.length
 
 export function rankFor(score) {
   return [...ranks].reverse().find((r) => score >= r.min)

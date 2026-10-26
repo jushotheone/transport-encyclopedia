@@ -21,6 +21,14 @@ module.exports = {
           '0%': { strokeDashoffset: '400' },
           '100%': { strokeDashoffset: '0' },
         },
+        cardin: {
+          '0%': { opacity: '0', transform: 'translateX(40px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
+        'cardin-back': {
+          '0%': { opacity: '0', transform: 'translateX(-40px)' },
+          '100%': { opacity: '1', transform: 'translateX(0)' },
+        },
         floaty: {
           '0%,100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-6px)' },
@@ -29,6 +37,8 @@ module.exports = {
       animation: {
         drift: 'drift 6s ease-out forwards',
         floaty: 'floaty 4s ease-in-out infinite',
+        cardin: 'cardin 0.3s ease-out',
+        'cardin-back': 'cardin-back 0.3s ease-out',
       },
     },
   },

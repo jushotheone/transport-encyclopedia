@@ -35,6 +35,9 @@ export default function HomePage() {
             <a href="#divisions" className="rounded-full bg-zts-orange px-8 py-3 text-lg font-extrabold shadow-lg hover:brightness-110">
               🚪 Enter the Gateway
             </a>
+            <Link href="/play/missions" className="rounded-full bg-white/15 px-8 py-3 text-lg font-extrabold shadow-lg hover:bg-white/25">
+              🗺️ Start a mission
+            </Link>
           </div>
         </div>
       </section>
@@ -49,6 +52,9 @@ export default function HomePage() {
             Nobody knows what is causing it. <strong>The Route Breaker</strong> is out there, and every vehicle you learn
             about could be a clue. Can you find out how things really work, so you can spot what is wrong?
           </p>
+          <Link href="/play/missions" className="mt-4 inline-block rounded-full bg-zts-orange px-6 py-2 font-extrabold text-white hover:brightness-110">
+            Plan a mission and beat the Route Breaker →
+          </Link>
         </section>
 
         <section id="divisions" aria-labelledby="divisions-heading" className="scroll-mt-6">

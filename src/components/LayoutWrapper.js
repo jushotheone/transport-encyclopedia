@@ -31,6 +31,9 @@ export default function LayoutWrapper({ children }) {
                 <span className="sr-only">{d.name}</span>
               </Link>
             ))}
+            <Link href="/play" className="rounded-full bg-zts-orange px-4 py-1 text-sm font-extrabold hover:brightness-110">
+              🎮 Play
+            </Link>
           </nav>
         </div>
       </header>
