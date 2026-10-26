@@ -4,6 +4,9 @@ import Link from 'next/link'
 import Quiz from '@/components/Quiz'
 import ReadAloud from '@/components/ReadAloud'
 import SoundButton from '@/components/SoundButton'
+import CardReveal from '@/components/CardReveal'
+import { learn, recordCard } from '@/lib/explorer'
+import { play } from '@/lib/sound'
 
 // One card = one idea. Cards are plain data built on the server (see vehicle page).
 function Reveal({ card, accent }) {
@@ -102,8 +105,9 @@ function CardBody({ card, accent, slug }) {
 const speakable = (c) =>
   c.type === 'cover' ? c.name : c.type === 'reveal' ? `${c.title}. ${c.body}` : c.body ? `${c.title}. ${c.body}` : ''
 
-export default function Deck({ cards, accent, slug, soundUrl, name }) {
+export default function Deck({ cards, accent, slug, soundUrl, name, vehicle }) {
   const [i, setI] = useState(0)
+  const [reveal, setReveal] = useState(false)
   const [dir, setDir] = useState(1)
   const startX = useRef(null)
   const last = cards.length - 1
@@ -112,7 +116,17 @@ export default function Deck({ cards, accent, slug, soundUrl, name }) {
     if (n < 0 || n > last) return
     setDir(n > i ? 1 : -1)
     setI(n)
+    play('tap')
   }
+
+  // Reaching the last card finishes the deck: the vehicle's collectible card unlocks and a fact is logged.
+  const finished = i === last
+  useEffect(() => {
+    if (!finished) return
+    if (recordCard(slug)) setReveal(true)
+    const fact = vehicle.funFact || vehicle.description.split(/(?<=[.!?])\s+/)[0]
+    if (fact) learn(`vehicle:${slug}`, `${vehicle.name}: ${fact}`)
+  }, [finished, slug, vehicle])
 
   useEffect(() => {
     const onKey = (e) => {
@@ -148,6 +162,8 @@ export default function Deck({ cards, accent, slug, soundUrl, name }) {
       >
         <CardBody card={card} accent={accent} slug={slug} />
       </div>
+
+      {reveal && <CardReveal vehicle={vehicle} onClose={() => setReveal(false)} />}
 
       <div className="mt-4 flex items-center justify-between gap-3">
         <button

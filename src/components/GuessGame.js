@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { getDivision } from '@/lib/divisions'
-import { recordWin } from '@/lib/explorer'
+import { learn, recordWin } from '@/lib/explorer'
+import { play } from '@/lib/sound'
 
 const ROUNDS = 5
 const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
@@ -88,7 +89,9 @@ export default function GuessGame({ vehicles }) {
     if (correct) {
       setScore((s) => s + points)
       recordWin(`guess:${vehicle.slug}`)
-    }
+      learn(`guess:${vehicle.slug}`, `${vehicle.name}: ${vehicle.funFact || vehicle.description.split(/(?<=[.!?])\s+/)[0]}`)
+      play('good')
+    } else play('bad')
   }
 
   function next() {

@@ -31,3 +31,13 @@ Content is cached for 5 minutes, so edits appear without a redeploy.
 - `src/lib/divisions.js` has the eight divisions with the official ZTS colours (Creative Strategy v1.2).
 - `tailwind.config.js` has the ZTS master palette.
 - `src/components/` has the quiz, read-aloud, explorer rank and cards.
+
+## What is in the app
+
+- **Gateway intro** and a living **network map** (home). The Route Breaker has broken each division's route.
+- **Route Builder**: a tile puzzle per division (3 levels each). On levels 2 and 3 the Route Breaker breaks a tile and the player must find a backup route. Puzzles are generated from a seed (`src/lib/routegen.js`) and are always solvable.
+- **Vehicle card decks**, collectible **cards** with rarity and pack-opening, **Mission Planner**, **Who Am I?** and the **Design Studio**.
+- **Daily streaks**, daily missions with a chest, real-world **field missions**, badges, a learning log and the **Explorer Passport**.
+- **Control Room**: one clue unlocks per repaired route. The clues in `src/lib/story.js` are placeholders that never reveal what the Route Breaker is.
+
+All progress is stored in the browser (`src/lib/explorer.js`). There are no accounts and no personal data.

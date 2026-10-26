@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react'
 import { divisions, getDivision } from '@/lib/divisions'
 import { scenarios, disruptions, ratingPoints, ratingLabel } from '@/lib/missions'
-import { readProgress, recordWin } from '@/lib/explorer'
+import { learn, readProgress, recordWin } from '@/lib/explorer'
+import { confetti } from '@/lib/confetti'
+import { play } from '@/lib/sound'
 
 function Stars({ count }) {
   return (
@@ -58,12 +60,17 @@ export default function MissionGame() {
   function chooseA(slug) {
     setPlanA(slug)
     setStage('broken')
+    play('strike')
   }
 
   function chooseB(slug) {
     setPlanB(slug)
+    if (Math.floor(ratingPoints[scenario.options[planA].rating] + ratingPoints[scenario.options[slug].rating]) < 2) play('bad')
     const points = ratingPoints[scenario.options[planA].rating] + ratingPoints[scenario.options[slug].rating]
     if (Math.floor(points) >= 2) {
+      play('win')
+      confetti({ count: 120 })
+      learn('route-redundancy', 'Having a backup route is called route redundancy. It keeps people and supplies moving when one route breaks.')
       recordWin(`mission:${scenario.id}`)
       setDone((d) => (d.includes(`mission:${scenario.id}`) ? d : [...d, `mission:${scenario.id}`]))
     }

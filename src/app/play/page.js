@@ -1,9 +1,25 @@
 import Link from 'next/link'
-import ExplorerPanel from '@/components/ExplorerPanel'
+import HudBar from '@/components/HudBar'
 
 export const metadata = { title: 'Play', description: 'Games, missions and puzzles from Zion Transport System.' }
 
 const games = [
+  {
+    href: '/',
+    emoji: '🧩',
+    title: 'Route Builder',
+    blurb: 'Turn tiles to connect the route. The Route Breaker will wreck it, so find another way!',
+    skill: 'Puzzle: plan, test, adapt',
+    colour: '#24875D',
+  },
+  {
+    href: '/studio',
+    emoji: '🛠️',
+    title: 'Design Studio',
+    blurb: 'Invent a vehicle from parts, then see if it can survive a real mission.',
+    skill: 'Creating: function first',
+    colour: '#E97828',
+  },
   {
     href: '/play/missions',
     emoji: '🗺️',
@@ -37,8 +53,8 @@ export default function PlayPage() {
         <h1 className="text-4xl font-extrabold text-zts-midnight">🎮 Play</h1>
         <p className="mt-1 text-lg text-zts-graphite/80">Every game wins you discoveries and ranks you up.</p>
       </div>
-      <ExplorerPanel />
-      <ul className="grid gap-5 sm:grid-cols-3">
+      <HudBar />
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {games.map((g) => (
           <li key={g.href}>
             <Link

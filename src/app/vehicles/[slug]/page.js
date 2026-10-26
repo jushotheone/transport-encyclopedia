@@ -108,6 +108,7 @@ export default async function VehiclePage({ params }) {
           accent={division.accent}
           slug={vehicle.slug}
           name={vehicle.name}
+          vehicle={{ slug: vehicle.slug, name: vehicle.name, system: vehicle.system, image: vehicle.image, origin_country: vehicle.origin_country, flag_emoji: vehicle.flag_emoji, funFact: vehicle.funFact, description: vehicle.description }}
           soundUrl={safeUrl(vehicle.custom_sound_url)}
         />
 

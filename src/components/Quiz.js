@@ -1,7 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { isCorrectAnswer } from '@/lib/utils'
-import { recordQuizWin } from '@/lib/explorer'
+import { learn, recordQuizWin } from '@/lib/explorer'
+import { confetti } from '@/lib/confetti'
+import { play } from '@/lib/sound'
 
 export default function Quiz({ slug, question, choices, answer, accent }) {
   const [picked, setPicked] = useState(null)
@@ -13,7 +15,12 @@ export default function Quiz({ slug, question, choices, answer, accent }) {
   function choose(i) {
     if (answered) return
     setPicked(i)
-    if (isCorrectAnswer(choices[i], i, answer)) recordQuizWin(slug)
+    if (isCorrectAnswer(choices[i], i, answer)) {
+      recordQuizWin(slug)
+      learn(`quiz:${slug}`, `${question} ${choices[i]}.`)
+      confetti({ count: 70 })
+      play('good')
+    } else play('bad')
   }
 
   return (
