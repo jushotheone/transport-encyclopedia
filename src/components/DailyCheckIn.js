@@ -22,8 +22,8 @@ export default function DailyCheckIn() {
   const { streak, xp, freezeUsed, earnedFreeze, lost, milestone } = reward
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Daily reward" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4">
-      <div className="animate-pop w-full max-w-sm rounded-3xl bg-gradient-to-b from-zts-midnight to-slate-900 p-8 text-center text-white shadow-2xl ring-4 ring-zts-orange">
+    <div role="dialog" aria-modal="true" aria-label="Daily reward" className="fixed inset-x-0 top-0 z-[70] flex overflow-y-auto bg-black/70 p-4" style={{ height: '100dvh' }}>
+      <div className="animate-pop m-auto w-full max-w-sm rounded-3xl bg-gradient-to-b from-zts-midnight to-slate-900 p-8 text-center text-white shadow-2xl ring-4 ring-zts-orange">
         <p className="animate-floaty flex justify-center text-orange-400" aria-hidden="true"><Icon name="flame" className="h-20 w-20" fill="currentColor" /></p>
         <h2 className="mt-2 text-3xl font-extrabold">
           {streak === 1 ? (lost ? 'Fresh start!' : `Welcome, ${profile.name || 'explorer'}!`) : `Day ${streak} streak, ${profile.name || 'explorer'}!`}

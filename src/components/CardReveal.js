@@ -19,7 +19,8 @@ export default function CardReveal({ vehicle, onClose }) {
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="New card unlocked" className="fixed inset-0 z-[75] flex flex-col items-center justify-center gap-4 bg-black/80 p-4 text-center text-white">
+    <div role="dialog" aria-modal="true" aria-label="New card unlocked" className="fixed inset-x-0 top-0 z-[75] flex flex-col items-center gap-4 overflow-y-auto bg-black/80 p-4 text-center text-white" style={{ height: '100dvh' }}>
+      <div className="m-auto flex flex-col items-center gap-4 py-4">
       <h2 className="animate-pop text-3xl font-extrabold">{open ? `${rarity.label} card!` : 'New card unlocked!'}</h2>
       {!open ? (
         <button
@@ -42,6 +43,7 @@ export default function CardReveal({ vehicle, onClose }) {
           <Link href="/cards" className="rounded-full bg-white/15 px-6 py-3 font-extrabold hover:bg-white/25">See all cards</Link>
         </div>
       )}
+      </div>
     </div>
   )
 }
