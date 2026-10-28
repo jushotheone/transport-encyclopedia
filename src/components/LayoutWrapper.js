@@ -56,6 +56,7 @@ export default function LayoutWrapper({ children }) {
         <p className="font-bold text-white">Built by Zion and family</p>
         <p className="mt-1">Explore how the world moves. Real vehicles are real, and future ideas are labelled.</p>
         <p className="mt-1 text-xs text-white/50">Your progress is saved only on this device.</p>
+        <p className="mt-3"><Link href="/creator" className="inline-flex items-center rounded-full bg-white/10 px-4 py-1.5 text-sm font-bold text-white hover:bg-white/20"><Icon name="hammer" className="mr-1.5 h-4 w-4" />For Zion: Creator Hub</Link></p>
       </footer>
     </div>
   )

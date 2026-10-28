@@ -11,7 +11,7 @@ const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
 // Hide the vehicle's own name so the clues do not give it away.
 function mask(text, name) {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(new RegExp(escaped, 'gi'), '▮▮▮')
+  return text.replace(new RegExp(escaped + 's?', 'gi'), '▮▮▮')
 }
 
 function cluesFor(v) {

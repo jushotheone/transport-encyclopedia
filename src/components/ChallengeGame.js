@@ -36,7 +36,7 @@ function Media({ media }) {
   )
 }
 
-function Question({ q, picked, onPick, lightning, timeLeft }) {
+export function Question({ q, picked, onPick, lightning, timeLeft }) {
   const answered = picked !== null
   return (
     <div className="space-y-4">
@@ -104,6 +104,7 @@ export default function ChallengeGame({ vehicles, extra, mode }) {
   const [marks, setMarks] = useState([])
   const [newBest, setNewBest] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [asked, setAsked] = useState([])
   const finished = useRef(false)
   const daily = mode === 'daily'
 
@@ -115,15 +116,17 @@ export default function ChallengeGame({ vehicles, extra, mode }) {
     const day = dayKey()
     setToday(day)
     setPractice(isPractice)
-    setIdx(0); setPicked(null); setCorrect(0); setSkill(0); setLives(3); setRecent([]); setDone(false); setMarks([]); setNewBest(false); setLightning(false)
+    setAsked([]); setIdx(0); setPicked(null); setCorrect(0); setSkill(0); setLives(3); setRecent([]); setDone(false); setMarks([]); setNewBest(false); setLightning(false)
     if (daily) {
       const list = dailyQuestions(vehicles, extra, day)
       setQuestions(list)
       setQ(list[0] || null)
+      setAsked(list.map((x) => x.source))
     } else {
       const first = makeQuestion({ vehicles, extra, level: 1 })
       setQ(first)
       setRecent(first ? [first.type, first.signature] : [])
+      setAsked(first ? [first.source] : [])
     }
   }
 
@@ -168,6 +171,7 @@ export default function ChallengeGame({ vehicles, extra, mode }) {
       const nextQ = makeQuestion({ vehicles, extra, level: levelForSkill(skill), recent })
       if (!nextQ) return finish()
       setQ(nextQ)
+      setAsked((a) => [...a, nextQ.source])
       setRecent((r) => [...r.slice(-8), nextQ.type, nextQ.signature])
       const strike = n >= 3 && !lightning && Math.random() < 0.25
       setLightning(strike)
@@ -253,6 +257,12 @@ export default function ChallengeGame({ vehicles, extra, mode }) {
         </h2>
         {!daily && <p className="text-white/80">{newBest ? 'A new personal best!' : `Your best is ${s.challenge.best}.`}</p>}
         {daily && practice && <p className="text-white/70">Practice round, so your score was not saved.</p>}
+        {asked.includes('zion') && (
+          <p className="rounded-2xl bg-white/10 p-3 font-bold">
+            <Icon name="pencil" className="mr-1.5 h-5 w-5 text-zts-orange" />
+            {asked.filter((s) => s === 'zion').length} of these questions came from Zion&apos;s own notes, quizzes and challenges.
+          </p>
+        )}
         <div className="flex flex-wrap justify-center gap-3">
           {daily && !practice && (
             <button type="button" onClick={share} className="rounded-full bg-zts-orange px-6 py-3 font-extrabold hover:brightness-110">

@@ -4,10 +4,9 @@
 //   explain, source: 'zion' | 'data', vehicle }
 import { hashString, mulberry32 } from '@/lib/routegen'
 import { divisions, getDivision } from '@/lib/divisions'
-import { isCorrectAnswer, safeUrl } from '@/lib/utils'
+import { quizProblem, resolveAnswers, safeUrl } from '@/lib/utils'
 
 const FILLER_COUNTRIES = [['Japan', '🇯🇵'], ['Brazil', '🇧🇷'], ['Kenya', '🇰🇪'], ['Chile', '🇨🇱'], ['Sweden', '🇸🇪'], ['Canada', '🇨🇦'], ['India', '🇮🇳'], ['Australia', '🇦🇺']]
-const STOP = new Set('about above after again against because before being below between could does doing during each from have having into more most other over same should some such than that their them then there these they this those through under until very what when where which while with would your'.split(' '))
 
 function tools(rng) {
   const shuffle = (a) => {
@@ -21,8 +20,9 @@ function tools(rng) {
   return { shuffle, pick: (a) => a[Math.floor(rng() * a.length)], sample: (a, n) => shuffle(a).slice(0, n) }
 }
 
-const mask = (text, name) => text.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '▮▮▮')
-const factsOf = (v) => [v.funFact, v.bonus_fact].filter(Boolean)
+const mask = (text, name) => text.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + 's?', 'gi'), '▮▮▮')
+// Short or vague facts could fit several vehicles, so only specific ones are used for "which vehicle" questions.
+const factsOf = (v) => [v.funFact, v.bonus_fact].filter((f) => f && f.length >= 40)
 const choice = (label, correct, sub) => ({ label, correct, ...(sub ? { sub } : {}) })
 
 // Distractor vehicles: harder levels draw them from the same division.
@@ -58,9 +58,9 @@ export const generators = {
   } },
 
   zionQuiz: { level: 1, weight: 3, make(ctx) {
-    const v = ctx.t.pick(ctx.vehicles.filter((x) => x.quiz_question && x.quiz_choices.length >= 2))
+    const v = ctx.t.pick(ctx.vehicles.filter((x) => x.quiz_question && !quizProblem(x.quiz_question, x.quiz_choices, x.quiz_answer)))
     if (!v) return null
-    return { prompt: v.quiz_question, choices: ctx.t.shuffle(v.quiz_choices.map((c, i) => choice(c, isCorrectAnswer(c, i, v.quiz_answer)))), explain: `${v.name}: ${v.quiz_answer}.`, vehicle: v.slug, source: 'zion' }
+    return { prompt: v.quiz_question, choices: ctx.t.shuffle(resolveAnswers(v.quiz_choices, v.quiz_answer).map((ok, i) => choice(v.quiz_choices[i], ok))), explain: `${v.name}: ${v.quiz_choices[resolveAnswers(v.quiz_choices, v.quiz_answer).indexOf(true)]}.`, vehicle: v.slug, source: 'zion' }
   } },
 
   authored: { level: 1, weight: 4, make(ctx) {
@@ -88,17 +88,18 @@ export const generators = {
   } },
 
   noteOwner: { level: 2, weight: 3, make(ctx) {
-    const v = ctx.t.pick(ctx.vehicles.filter((x) => x.zions_note || x.zions_recommendation))
+    const v = ctx.t.pick(ctx.vehicles.filter((x) => (x.zions_note || '').length >= 25 || (x.zions_recommendation || '').length >= 25))
     const choices = v && nameChoices(ctx, v)
     if (!choices) return null
-    const said = v.zions_note || v.zions_recommendation
+    const said = (v.zions_note || '').length >= 25 ? v.zions_note : v.zions_recommendation
     return { prompt: 'Zion said this about a vehicle. Which one?', quote: mask(said, v.name), choices, explain: `Zion was talking about the ${v.name}: "${said}"`, vehicle: v.slug, source: 'zion' }
   } },
 
   maker: { level: 2, weight: 2, make(ctx) {
     const v = ctx.t.pick(ctx.vehicles.filter((x) => x.manufacturers.length))
     if (!v) return null
-    const pool = [...new Set(ctx.vehicles.flatMap((x) => x.manufacturers))].filter((m) => !v.manufacturers.includes(m))
+    // Wrong answers come only from other kinds of vehicle, so none of them could really build this one.
+    const pool = [...new Set(ctx.vehicles.filter((x) => x.system !== v.system).flatMap((x) => x.manufacturers))].filter((m) => !v.manufacturers.includes(m))
     if (pool.length < 3) return null
     const right = ctx.t.pick(v.manufacturers)
     return { prompt: `Which company builds the ${v.name}?`, choices: ctx.t.shuffle([choice(right, true), ...ctx.t.sample(pool, 3).map((m) => choice(m, false))]), explain: `${right} builds the ${v.name}.`, vehicle: v.slug, source: 'data' }
@@ -106,8 +107,8 @@ export const generators = {
 
   // A real fact stuck on the wrong vehicle is the "fake". It is always accurate to Zion's own data.
   swap: { level: 2, weight: 2, make(ctx) {
-    const v = ctx.t.pick(ctx.vehicles.filter((x) => x.funFact))
-    const other = v && ctx.t.pick(ctx.vehicles.filter((x) => x.funFact && x.slug !== v.slug && x.funFact !== v.funFact))
+    const v = ctx.t.pick(ctx.vehicles.filter((x) => x.funFact && x.funFact.length >= 30))
+    const other = v && ctx.t.pick(ctx.vehicles.filter((x) => x.funFact && x.system !== v.system && x.funFact !== v.funFact))
     if (!other) return null
     const real = ctx.rng() < 0.5
     const shown = real ? v.funFact : other.funFact
@@ -124,20 +125,7 @@ export const generators = {
     const d1 = getDivision(group[0].system)
     const d2 = getDivision(odd.system)
     return { prompt: 'Which one does NOT belong with the others?', choices: ctx.t.shuffle([...three.map((v) => choice(v.name, false)), choice(odd.name, true)]), explain: `${odd.name} is ${d2?.name || odd.system}. The others are all ${d1?.name || group[0].system}.`, vehicle: odd.slug, source: 'data' }
-  } },
-
-  cloze: { level: 3, weight: 2, make(ctx) {
-    const v = ctx.t.pick(ctx.vehicles.filter((x) => x.description.length > 40))
-    if (!v) return null
-    const sentence = ctx.t.pick(v.description.split(/(?<=[.!?])\s+/).filter((s) => s.split(' ').length >= 6))
-    if (!sentence) return null
-    const words = (sentence.match(/[A-Za-z]{6,}/g) || []).filter((w) => !STOP.has(w.toLowerCase()) && !v.name.toLowerCase().includes(w.toLowerCase()))
-    if (!words.length) return null
-    const target = ctx.t.pick(words)
-    const pool = [...new Set(ctx.vehicles.filter((x) => x.slug !== v.slug).flatMap((x) => x.description.match(/[A-Za-z]{6,}/g) || []).map((w) => w.toLowerCase()))].filter((w) => !STOP.has(w) && w !== target.toLowerCase() && Math.abs(w.length - target.length) <= 3)
-    if (pool.length < 3) return null
-    return { prompt: `Fill the gap about the ${v.name}.`, quote: sentence.replace(target, '________'), choices: ctx.t.shuffle([choice(target.toLowerCase(), true), ...ctx.t.sample(pool, 3).map((w) => choice(w, false))]), explain: `${sentence}`, vehicle: v.slug, source: 'data' }
-  } },
+  } }
 }
 
 const TYPES = Object.keys(generators)

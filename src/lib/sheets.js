@@ -2,30 +2,8 @@ import { unstable_cache } from 'next/cache'
 import { GoogleSpreadsheet } from 'google-spreadsheet'
 import { JWT } from 'google-auth-library'
 import { sampleChallenges, sampleVehicles } from '@/lib/sampleVehicles'
-
-// Column order of the "Vehicles" tab. Adding a column? Add it to the END of the sheet
-// and to this list, so existing positions never move.
-const COLUMNS = [
-  'name',
-  'slug',
-  'system',
-  'image',
-  'description',
-  'funFact',
-  'manufacturers',
-  'more_images',
-  'video_url',
-  'zions_note',
-  'origin_country',
-  'flag_emoji',
-  'bonus_fact',
-  'learn_more',
-  'quiz_question',
-  'quiz_choices',
-  'quiz_answer',
-  'custom_sound_url',
-  'zions_recommendation',
-]
+import { COLUMNS } from '@/lib/columns'
+import { cleanChoice, splitChoices } from '@/lib/utils'
 
 const text = (v) => (v ?? '').toString().trim()
 const list = (v, splitter = /[,|•]+/) =>
@@ -52,7 +30,7 @@ export function parseRow(raw) {
     bonus_fact: text(cell('bonus_fact')),
     learn_more: text(cell('learn_more')),
     quiz_question: text(cell('quiz_question')),
-    quiz_choices: list(cell('quiz_choices'), /,/),
+    quiz_choices: splitChoices(cell('quiz_choices')),
     quiz_answer: text(cell('quiz_answer')),
     custom_sound_url: text(cell('custom_sound_url')),
     zions_recommendation: text(cell('zions_recommendation')),
@@ -120,9 +98,9 @@ const isYes = (v) => ['yes', 'y', 'true', '1', 'ok', 'approved'].includes(text(v
 
 export function parseChallenge(raw) {
   const [vehicle, question, correct, w1, w2, w3, explanation, approved] = raw.map(text)
-  const wrongs = [w1, w2, w3].filter(Boolean)
+  const wrongs = [w1, w2, w3].map(cleanChoice).filter(Boolean)
   if (!question || !correct || wrongs.length < 1 || !isYes(approved)) return null
-  return { vehicle, question, correct, wrongs, explanation }
+  return { vehicle, question, correct: cleanChoice(correct), wrongs, explanation }
 }
 
 async function loadChallengesFromSheet() {

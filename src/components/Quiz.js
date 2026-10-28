@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { isCorrectAnswer } from '@/lib/utils'
+import { resolveAnswers } from '@/lib/utils'
 import { learn, recordQuizWin } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
@@ -11,12 +11,13 @@ export default function Quiz({ slug, question, choices, answer, accent }) {
   if (!question || choices.length < 2) return null
 
   const answered = picked !== null
-  const correct = answered && isCorrectAnswer(choices[picked], picked, answer)
+  const rights = resolveAnswers(choices, answer)
+  const correct = answered && rights[picked]
 
   function choose(i) {
     if (answered) return
     setPicked(i)
-    if (isCorrectAnswer(choices[i], i, answer)) {
+    if (rights[i]) {
       recordQuizWin(slug)
       learn(`quiz:${slug}`, `${question} ${choices[i]}.`)
       confetti({ count: 70 })
@@ -34,7 +35,7 @@ export default function Quiz({ slug, question, choices, answer, accent }) {
       <p className="mt-2 text-lg font-semibold">{question}</p>
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {choices.map((choice, i) => {
-          const isRight = isCorrectAnswer(choice, i, answer)
+          const isRight = rights[i]
           const state = !answered
             ? 'bg-white/15 hover:bg-white/30'
             : isRight

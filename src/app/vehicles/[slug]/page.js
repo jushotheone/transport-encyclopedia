@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { fetchVehicles } from '@/lib/sheets'
 import { getDivision } from '@/lib/divisions'
-import { extractYouTubeID, safeUrl } from '@/lib/utils'
+import { extractYouTubeID, quizProblem, safeUrl } from '@/lib/utils'
 import Deck from '@/components/Deck'
 import ExplorerTracker from '@/components/ExplorerTracker'
 import Icon from '@/components/Icon'
@@ -64,7 +64,7 @@ function buildCards(vehicle, division, related, images, youtubeId) {
     cards.push({ type: 'reveal', icon: 'factory', title: 'Who builds it?', body: vehicle.manufacturers.join(', ') })
   if (vehicle.bonus_fact) cards.push({ type: 'reveal', icon: 'brain', title: 'Did you know?', body: vehicle.bonus_fact })
 
-  if (vehicle.quiz_question && vehicle.quiz_choices.length >= 2)
+  if (vehicle.quiz_question && !quizProblem(vehicle.quiz_question, vehicle.quiz_choices, vehicle.quiz_answer))
     cards.push({ type: 'quiz', question: vehicle.quiz_question, choices: vehicle.quiz_choices, answer: vehicle.quiz_answer })
 
   if (vehicle.zions_recommendation)
