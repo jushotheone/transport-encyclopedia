@@ -34,3 +34,18 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Expedition scenes: a tapped object bounces so the tap feels real. */
+@keyframes objpop {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}
+.obj-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: objpop 0.5s ease-out;
+}
+.obj:focus-visible {
+  filter: drop-shadow(0 0 6px #F28C28);
+}
