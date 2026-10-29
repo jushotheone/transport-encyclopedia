@@ -1,44 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { getDivision } from '@/lib/divisions'
+import { buildRounds } from '@/lib/guess'
 import { learn, recordWin } from '@/lib/explorer'
 import { play } from '@/lib/sound'
 import Icon, { DivisionIcon, Stars } from '@/components/Icon'
-
-const ROUNDS = 5
-const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5)
-
-// Hide the vehicle's own name so the clues do not give it away.
-function mask(text, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return text.replace(new RegExp(escaped + 's?', 'gi'), '▮▮▮')
-}
-
-function cluesFor(v) {
-  const d = getDivision(v.system)
-  const firstSentence = v.description.split(/(?<=[.!?])\s+/)[0]
-  return [
-    d && { icon: 'division', slug: d.slug, text: `I belong to the ${d.name} division.` },
-    v.origin_country && { icon: 'globe', flag: v.flag_emoji, text: `I come from ${v.origin_country}.` },
-    v.manufacturers.length > 0 && { icon: 'factory', text: `I am built by ${v.manufacturers.join(' and ')}.` },
-    v.funFact && { icon: 'sparkles', text: mask(v.funFact, v.name) },
-    v.bonus_fact && { icon: 'brain', text: mask(v.bonus_fact, v.name) },
-    v.zions_note && { icon: 'chat', text: `Zion says: "${mask(v.zions_note, v.name)}"` },
-    firstSentence && { icon: 'megaphone', text: mask(firstSentence, v.name) },
-  ].filter(Boolean)
-}
-
-function buildRounds(vehicles) {
-  return shuffle(vehicles)
-    .slice(0, ROUNDS)
-    .map((v) => {
-      const others = vehicles.filter((o) => o.slug !== v.slug)
-      const sameDivision = shuffle(others.filter((o) => o.system === v.system))
-      const rest = shuffle(others.filter((o) => o.system !== v.system))
-      const choices = shuffle([v, ...[...sameDivision, ...rest].slice(0, 3)])
-      return { vehicle: v, clues: cluesFor(v), choices }
-    })
-}
 
 export default function GuessGame({ vehicles }) {
   const [rounds, setRounds] = useState(null)
@@ -59,15 +24,17 @@ export default function GuessGame({ vehicles }) {
     setScore(0)
   }
 
-  if (vehicles.length < 3) {
+  if (!rounds) return null
+
+  // Not enough vehicles with enough clues to make a fair mystery.
+  if (rounds.length === 0) {
     return (
       <div className="rounded-3xl bg-white p-8 text-center shadow">
         <p className="flex justify-center text-zts-blue" aria-hidden="true"><Icon name="satellite" className="h-14 w-14" /></p>
-        <p className="mt-2 text-lg font-bold">Zion needs to find a few more vehicles before this game can start. Check back soon!</p>
+        <p className="mt-2 text-lg font-bold">Zion needs to add a few more details to his vehicles, like where they are from and fun facts, before this game can start. Check back soon!</p>
       </div>
     )
   }
-  if (!rounds) return null
 
   if (round >= rounds.length) {
     return (

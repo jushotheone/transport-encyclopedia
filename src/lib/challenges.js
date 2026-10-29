@@ -4,6 +4,7 @@
 //   explain, source: 'zion' | 'data', vehicle }
 import { hashString, mulberry32 } from '@/lib/routegen'
 import { divisions, getDivision } from '@/lib/divisions'
+import { mask } from '@/lib/guess'
 import { quizProblem, resolveAnswers, safeUrl } from '@/lib/utils'
 
 const FILLER_COUNTRIES = [['Japan', '🇯🇵'], ['Brazil', '🇧🇷'], ['Kenya', '🇰🇪'], ['Chile', '🇨🇱'], ['Sweden', '🇸🇪'], ['Canada', '🇨🇦'], ['India', '🇮🇳'], ['Australia', '🇦🇺']]
@@ -20,7 +21,6 @@ function tools(rng) {
   return { shuffle, pick: (a) => a[Math.floor(rng() * a.length)], sample: (a, n) => shuffle(a).slice(0, n) }
 }
 
-const mask = (text, name) => text.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + 's?', 'gi'), '▮▮▮')
 // Short or vague facts could fit several vehicles, so only specific ones are used for "which vehicle" questions.
 const factsOf = (v) => [v.funFact, v.bonus_fact].filter((f) => f && f.length >= 40)
 const choice = (label, correct, sub) => ({ label, correct, ...(sub ? { sub } : {}) })
