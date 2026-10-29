@@ -1,38 +1,64 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import Icon from '@/components/Icon'
 import VehicleArt from '@/components/VehicleArt'
 import Garage from '@/components/Garage'
-import { bodies, colours, movers, randomDesign, sizes, stickers, tops, divisionOfMover } from '@/lib/studio'
+import { ZionAvatar } from '@/components/Zion'
+import { bodies, colours, divisionOfMover, liveries, movers, randomDesign, sizes, tops } from '@/lib/studio'
 import { scenarios, ratingLabel } from '@/lib/missions'
 import { getDivision } from '@/lib/divisions'
 import { MAX_DESIGNS, learn, recordWin, saveDesign, useExplorer } from '@/lib/explorer'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
 import { toast } from '@/lib/toast'
-import Icon from '@/components/Icon'
 
-const chip = (on) => `rounded-2xl px-3 py-2 text-center text-sm font-extrabold transition ${on ? 'bg-zts-midnight text-white shadow-lg' : 'bg-white text-zts-midnight shadow hover:-translate-y-0.5'}`
-
-function Group({ title, children }) {
+// A part you can see before you choose it: the card shows what your vehicle would look like with that part.
+function PartCard({ label, note, selected, onClick, design }) {
   return (
-    <fieldset className="rounded-2xl bg-slate-50 p-3">
-      <legend className="px-1 text-sm font-extrabold uppercase tracking-wide text-zts-graphite/70">{title}</legend>
-      <div className="flex flex-wrap gap-2">{children}</div>
-    </fieldset>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`group flex flex-col items-center rounded-2xl p-2 text-center transition ${selected ? 'bg-zts-midnight text-white shadow-lg ring-2 ring-zts-orange' : 'bg-white text-zts-midnight shadow hover:-translate-y-0.5 hover:shadow-md'}`}
+    >
+      <span className={`block w-full overflow-hidden rounded-xl ${selected ? 'bg-white/10' : 'bg-slate-100'}`}>
+        <VehicleArt design={design} bare className="h-auto w-full" />
+      </span>
+      <span className="mt-1 text-sm font-extrabold leading-tight">{label}</span>
+      {note && <span className={`text-xs ${selected ? 'text-white/70' : 'text-zts-graphite/60'}`}>{note}</span>}
+    </button>
+  )
+}
+
+function Step({ n, title, children }) {
+  return (
+    <section className="rounded-3xl bg-slate-50 p-3 sm:p-4">
+      <h3 className="mb-2 flex items-center gap-2 text-lg font-extrabold text-zts-midnight">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-zts-orange text-sm text-white">{n}</span>
+        {title}
+      </h3>
+      {children}
+    </section>
   )
 }
 
 export default function DesignStudio() {
   const { designs } = useExplorer()
-  const [d, setD] = useState({ name: 'Sky Zipper', body: 'pod', mover: 'wings', top: 'windows', colour: '#1D9BF0', sticker: 'star', size: 1 })
-  const [mission, setMission] = useState(null)
+  const [d, setD] = useState({ name: 'Sky Zipper', body: 'long', mover: 'wings', top: 'plain', colour: '#1D9BF0', livery: 'stripe', size: 1 })
+  const [drive, setDrive] = useState(null) // { rating, id, mission }
+  const [result, setResult] = useState(null)
+  const timer = useRef(null)
   const set = (patch) => {
     setD((x) => ({ ...x, ...patch }))
-    setMission(null)
+    setDrive(null)
+    setResult(null)
+    clearTimeout(timer.current)
     play('tap')
   }
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   const full = designs.length >= MAX_DESIGNS
+  const part = movers.find((m) => m.id === d.mover)
 
   function save() {
     if (!d.name.trim()) return toast('Give your vehicle a name first!', 'pencil')
@@ -44,88 +70,122 @@ export default function DesignStudio() {
     } else toast('Your garage is full. Remove a vehicle to make space.', 'alert')
   }
 
-  function test(s) {
+  // The vehicle really tries the mission in front of you, then Zion explains how it went.
+  function testDrive(s) {
     const division = divisionOfMover(d.mover)
     const opt = s.options[division]
-    setMission({ s, division, opt })
-    if (opt.rating === 'great') {
-      play('win')
-      confetti({ count: 120 })
-      recordWin(`design:${s.id}:${division}`)
-    } else play(opt.rating === 'ok' ? 'good' : 'bad')
-    learn(`design-test:${division}`, `${movers.find((m) => m.id === d.mover).name} belong to ${getDivision(division).name}. ${opt.why}`)
+    clearTimeout(timer.current)
+    setResult(null)
+    setDrive({ rating: opt.rating, id: Date.now(), mission: s.title })
+    play('whoosh')
+    timer.current = setTimeout(() => {
+      setResult({ s, division, opt })
+      if (opt.rating === 'great') {
+        play('win')
+        confetti({ count: 120 })
+        recordWin(`design:${s.id}:${division}`)
+      } else play(opt.rating === 'ok' ? 'good' : 'bad')
+      learn(`design-test:${division}`, `${part.name} belong to ${getDivision(division).name}. ${opt.why}`)
+    }, opt.rating === 'ok' ? 5600 : 4600)
+  }
+
+  const driving = drive && !result
+  const [lastMission, setLastMission] = useState(null)
+  const run = (m) => {
+    setLastMission(m)
+    testDrive(m)
   }
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <div className="rounded-3xl bg-gradient-to-b from-zts-midnight to-slate-900 p-4 shadow-xl">
-            <VehicleArt design={d} className="w-full" />
+    <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+      {/* On a phone the vehicle stays pinned at the top while you choose parts; on a wide screen the whole column stays put. */}
+      <div className="contents lg:sticky lg:top-4 lg:block">
+        <div className="sticky top-2 z-20 overflow-hidden rounded-3xl bg-zts-midnight shadow-xl ring-4 ring-zts-midnight/30 lg:static">
+          <VehicleArt key={drive?.id || 'still'} design={d} drive={drive} className="block h-auto w-full" />
+          <div className="flex items-center gap-2 bg-zts-midnight p-2 sm:p-3">
             <input
               value={d.name}
               onChange={(e) => setD({ ...d, name: e.target.value.slice(0, 24) })}
               aria-label="Vehicle name"
-              className="mt-2 w-full rounded-xl bg-white/10 px-3 py-2 text-center text-xl font-extrabold text-white outline-none placeholder:text-white/40 focus:bg-white/20"
+              className="min-w-0 flex-1 rounded-xl bg-white/10 px-3 py-2 text-center text-lg font-extrabold text-white outline-none placeholder:text-white/40 focus:bg-white/20"
               placeholder="Name your vehicle"
             />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => { setD(randomDesign()); setMission(null); play('tap') }} className="flex-1 rounded-full bg-zts-blue px-4 py-3 font-extrabold text-white hover:brightness-110"><Icon name="shuffle" className="mr-1.5 h-5 w-5" />Surprise me</button>
-            <button type="button" onClick={save} disabled={full} className="flex-1 rounded-full bg-zts-orange px-4 py-3 font-extrabold text-white hover:brightness-110 disabled:opacity-40"><Icon name="download" className="mr-1.5 h-5 w-5" />Save to garage</button>
+            <button type="button" onClick={() => run(lastMission || scenarios[0])} disabled={!!driving} aria-label="Test drive" className="rounded-xl bg-green-600 p-2.5 text-white hover:brightness-110 disabled:opacity-50"><Icon name="play" className="h-6 w-6" /></button>
+            <button type="button" onClick={() => { setD({ ...randomDesign() }); setDrive(null); setResult(null); play('tap') }} aria-label="Surprise me with a random design" className="rounded-xl bg-zts-blue p-2.5 text-white hover:brightness-110"><Icon name="shuffle" className="h-6 w-6" /></button>
+            <button type="button" onClick={save} disabled={full} aria-label="Save to garage" className="rounded-xl bg-zts-orange p-2.5 text-white hover:brightness-110 disabled:opacity-40"><Icon name="download" className="h-6 w-6" /></button>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Group title="1. Body">
-            {bodies.map((b) => <button key={b.id} type="button" aria-pressed={d.body === b.id} onClick={() => set({ body: b.id })} className={chip(d.body === b.id)}>{b.name}</button>)}
-          </Group>
-          <Group title="2. How does it move?">
-            {movers.map((m) => <button key={m.id} type="button" aria-pressed={d.mover === m.id} onClick={() => set({ mover: m.id })} className={chip(d.mover === m.id)} title={m.note}><Icon name={m.icon} className="mr-1 h-4 w-4" />{m.name}</button>)}
-          </Group>
-          <Group title="3. On top">
-            {tops.map((t) => <button key={t.id} type="button" aria-pressed={d.top === t.id} onClick={() => set({ top: t.id })} className={chip(d.top === t.id)}>{t.name}</button>)}
-          </Group>
-          <Group title="4. Colour">
-            {colours.map((c) => (
-              <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={d.colour === c} onClick={() => set({ colour: c })} className={`h-10 w-10 rounded-full shadow ring-offset-2 ${d.colour === c ? 'ring-4 ring-zts-orange' : 'ring-1 ring-black/10'}`} style={{ background: c }} />
+        <div className="mt-4">
+          <p className="mb-1 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-zts-graphite/70"><Icon name="flask" className="h-4 w-4" />Test drive: pick a mission</p>
+          <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:flex-wrap lg:px-0" aria-label="Missions">
+            {scenarios.map((s) => (
+              <li key={s.id} className="shrink-0">
+                <button type="button" onClick={() => run(s)} disabled={!!driving} className={`flex items-center gap-2 rounded-full px-4 py-2 font-extrabold shadow transition hover:-translate-y-0.5 disabled:opacity-50 ${lastMission?.id === s.id ? 'bg-zts-midnight text-white' : 'bg-white text-zts-midnight'}`}>
+                  <Icon name={s.icon} className="h-5 w-5 text-zts-blue" />{s.title}
+                </button>
+              </li>
             ))}
-          </Group>
-          <Group title="5. Sticker and size">
-            {stickers.map((s) => <button key={s} type="button" aria-label={`Sticker ${s}`} aria-pressed={d.sticker === s} onClick={() => set({ sticker: s })} className={chip(d.sticker === s)}><Icon name={s} className="h-5 w-5" /></button>)}
-            <span className="mx-1 w-px bg-slate-300" aria-hidden="true" />
-            {sizes.map((z) => <button key={z.id} type="button" aria-pressed={d.size === z.id} onClick={() => set({ size: z.id })} className={chip(d.size === z.id)}>{z.name}</button>)}
-          </Group>
+          </ul>
         </div>
-      </div>
 
-      <section aria-labelledby="test-h" className="rounded-3xl bg-white p-5 shadow-lg ring-1 ring-zts-midnight/10">
-        <h2 id="test-h" className="text-2xl font-extrabold text-zts-midnight"><Icon name="flask" className="mr-2 h-6 w-6 text-green-700" />Test it on a mission</h2>
-        <p className="text-zts-graphite/80">Does {d.name || 'your vehicle'} have the right parts for the job? Pick a mission to find out.</p>
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {scenarios.map((s) => (
-            <li key={s.id}>
-              <button type="button" onClick={() => test(s)} className="flex w-full items-center gap-3 rounded-2xl bg-slate-50 p-3 text-left font-bold hover:bg-sky-50">
-                <Icon name={s.icon} className="h-8 w-8 text-zts-blue" />{s.title}
-              </button>
-            </li>
-          ))}
-        </ul>
-        {mission && (
-          <div aria-live="polite" className="animate-pop mt-4 rounded-2xl bg-zts-midnight p-4 text-white">
-            <p className="text-lg font-extrabold">
-              <Icon name={ratingLabel[mission.opt.rating].icon} className="mr-1 h-5 w-5" />{mission.s.title}: {ratingLabel[mission.opt.rating].text}
-            </p>
-            <p className="mt-1">{mission.opt.why}</p>
-            <p className="mt-2 text-sm text-white/70">
-              {movers.find((m) => m.id === d.mover).name} belong to {getDivision(mission.division).name}.
-              {mission.opt.rating !== 'great' && ' Try different parts and test again!'}
-            </p>
+        {driving && <p role="status" className="mt-3 rounded-2xl bg-white p-3 font-bold text-zts-midnight shadow">{d.name || 'Your vehicle'} is trying: {drive.mission}</p>}
+
+        {result && (
+          <div aria-live="polite" className="animate-pop mt-3 flex items-start gap-3 rounded-3xl bg-zts-midnight p-4 text-white shadow-lg">
+            <ZionAvatar className="h-12 w-12" />
+            <div className="flex-1">
+              <span className="sr-only">Zion says: </span>
+              <p className="text-lg font-extrabold">
+                <Icon name={ratingLabel[result.opt.rating].icon} className="mr-1.5 h-5 w-5 text-zts-orange" />
+                {result.s.title}: {ratingLabel[result.opt.rating].text}
+              </p>
+              <p className="mt-1">{result.opt.why}</p>
+              <p className="mt-2 text-sm text-white/70">
+                {part.name} belong to {getDivision(result.division).name}.{result.opt.rating !== 'great' && ' Try different parts and test again!'}
+              </p>
+            </div>
           </div>
         )}
-      </section>
+      </div>
 
-      <section aria-labelledby="garage-h">
+      <div className="mt-6 space-y-6 lg:mt-0">
+        <Step n={1} title="How does it move?">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {movers.map((m) => <PartCard key={m.id} label={m.name} note={m.note} selected={d.mover === m.id} onClick={() => set({ mover: m.id })} design={{ ...d, mover: m.id }} />)}
+          </div>
+        </Step>
+
+        <Step n={2} title="Pick a shape">
+          <div className="grid grid-cols-3 gap-2">
+            {bodies.map((b) => <PartCard key={b.id} label={b.name} selected={d.body === b.id} onClick={() => set({ body: b.id })} design={{ ...d, body: b.id }} />)}
+          </div>
+        </Step>
+
+        <Step n={3} title="Paint it">
+          <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Colour">
+            {colours.map((c) => (
+              <button key={c} type="button" aria-label={`Colour ${c}`} aria-pressed={d.colour === c} onClick={() => set({ colour: c })} className={`h-11 w-11 rounded-full shadow ring-offset-2 transition ${d.colour === c ? 'scale-110 ring-4 ring-zts-orange' : 'ring-1 ring-black/10'}`} style={{ background: c }} />
+            ))}
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            {liveries.map((l) => <PartCard key={l.id} label={l.name} selected={d.livery === l.id} onClick={() => set({ livery: l.id })} design={{ ...d, livery: l.id }} />)}
+          </div>
+        </Step>
+
+        <Step n={4} title="Add something on top">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {tops.map((t) => <PartCard key={t.id} label={t.name} selected={d.top === t.id} onClick={() => set({ top: t.id })} design={{ ...d, top: t.id }} />)}
+          </div>
+          <div className="mt-3 flex gap-2" role="group" aria-label="Size">
+            {sizes.map((z) => (
+              <button key={z.id} type="button" aria-pressed={d.size === z.id} onClick={() => set({ size: z.id })} className={`flex-1 rounded-2xl px-3 py-2 text-sm font-extrabold ${d.size === z.id ? 'bg-zts-midnight text-white' : 'bg-white text-zts-midnight shadow'}`}>{z.name}</button>
+            ))}
+          </div>
+        </Step>
+      </div>
+
+      <section aria-labelledby="garage-h" className="mt-8 lg:col-span-2">
         <h2 id="garage-h" className="mb-3 text-2xl font-extrabold text-zts-midnight"><Icon name="home" className="mr-2 h-6 w-6 text-green-700" />My garage</h2>
         <Garage />
       </section>

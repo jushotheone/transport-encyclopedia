@@ -18,14 +18,21 @@ export const movers = [
 ]
 
 export const tops = [
-  { id: 'windows', name: 'Windows' },
+  { id: 'plain', name: 'Plain' },
   { id: 'cargo', name: 'Cargo box' },
   { id: 'antenna', name: 'Antenna' },
-  { id: 'none', name: 'Plain' },
+  { id: 'beacon', name: 'Beacon' },
 ]
 
 export const colours = ['#1D9BF0', '#F28C28', '#D64045', '#24875D', '#7057D9', '#008C95', '#F59E0B', '#F4FAFD']
-export const stickers = ['star', 'zap', 'flame', 'heart', 'cat', 'bird', 'rocket', 'gem']
+// Paint schemes replace the old stickers: they are part of the body, not icons dropped on top of it.
+export const liveries = [
+  { id: 'plain', name: 'Plain' },
+  { id: 'stripe', name: 'Stripe' },
+  { id: 'double', name: 'Double' },
+  { id: 'chevron', name: 'Chevrons' },
+  { id: 'zigzag', name: 'Zigzag' },
+]
 export const sizes = [
   { id: 0.8, name: 'Small' },
   { id: 1, name: 'Medium' },
@@ -46,7 +53,7 @@ export function randomDesign() {
     mover: pick(movers).id,
     top: pick(tops).id,
     colour: pick(colours),
-    sticker: pick(stickers),
+    livery: pick(liveries).id,
     size: pick(sizes).id,
   }
 }

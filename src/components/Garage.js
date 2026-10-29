@@ -13,7 +13,7 @@ export default function Garage({ editable = true }) {
       <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {designs.map((d) => (
           <li key={d.id} className="rounded-2xl bg-white p-3 text-center shadow ring-1 ring-zts-midnight/10">
-            <VehicleArt design={d} className="w-full" />
+            <VehicleArt design={d} className="w-full rounded-xl" />
             <p className="truncate font-extrabold text-zts-midnight">{d.name}</p>
             <p className="text-xs text-zts-graphite/60">Designed {d.created}</p>
             {editable && (
