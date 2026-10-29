@@ -4,13 +4,14 @@ import { divisions } from '@/lib/divisions'
 import { AVATARS, markIntroSeen, setProfile, useExplorer } from '@/lib/explorer'
 import { play } from '@/lib/sound'
 import { Avatar } from '@/components/Icon'
+import { ZionAvatar, ZionSays } from '@/components/Zion'
 
 // The Future Gateway: stillness, then transport paths emerge and join into one living network.
 const STEPS = [
   { text: 'Take a slow breath in… and out.', sub: 'Be still. Picture the future you are growing towards.' },
   { text: 'Tiny lines of light appear…', sub: 'Roads, rails, flight paths, ocean routes.' },
   { text: 'They connect into one living network.', sub: 'Zion Transport System.' },
-  { text: 'Welcome, explorer.', sub: '' },
+  { text: 'Welcome, explorer.', sub: "I'm Zion. Let's fix the network together." },
 ]
 
 export default function Gateway() {
@@ -98,6 +99,7 @@ export default function Gateway() {
 
       <div className="relative z-10 mx-auto flex min-h-full w-full max-w-md flex-col items-center justify-end px-6 pb-28 pt-24">
       <div className="w-full" aria-live="polite">
+        {step === 3 && <div className="animate-pop mb-3 flex justify-center"><ZionAvatar className="h-24 w-24" priority /></div>}
         <p className={`${step === 0 ? 'text-2xl' : 'text-3xl'} font-extrabold sm:text-4xl`}>{cur.text}</p>
         {cur.sub && <p className="mt-2 text-base text-white/70 sm:text-lg">{cur.sub}</p>}
         {step === 0 && (

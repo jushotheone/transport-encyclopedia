@@ -6,6 +6,7 @@ import NetworkMap from '@/components/NetworkMap'
 import DailyPanel from '@/components/DailyPanel'
 import Icon from '@/components/Icon'
 import InstallPrompt from '@/components/InstallPrompt'
+import ZionGuide from '@/components/ZionGuide'
 
 export const revalidate = 300
 
@@ -31,6 +32,7 @@ export default async function HomePage() {
           </p>
         </header>
 
+        <ZionGuide />
         <HudBar totalCards={vehicles.length} />
         <NetworkMap />
         <InstallPrompt />

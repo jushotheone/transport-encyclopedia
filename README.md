@@ -67,8 +67,8 @@ a one-tap icon, which is the easiest way to keep a daily streak going.
 
 For whoever fills in the sheet. It shows how much of the game comes from the sheet, checks every row for mistakes in plain
 English (the "Sheet check"), lists what each vehicle is still missing and what adding it would unlock, awards creator badges,
-and has two makers with a live preview that copy a ready-made row to paste into the sheet. Optionally set
-`NEXT_PUBLIC_CREATOR_SHEET_URL` to the spreadsheet's address to show an "Open my spreadsheet" button.
+and has two makers with a live preview that copy a ready-made row to paste into the sheet. Set `CREATOR_PIN` in the hosting settings to lock the hub behind a PIN (it stays open if you do not). Optionally set
+`CREATOR_SHEET_URL` to the spreadsheet's address to show an "Open my spreadsheet" button once unlocked.
 
 ## Typing quizzes in the sheet
 

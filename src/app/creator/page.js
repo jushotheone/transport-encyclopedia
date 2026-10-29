@@ -5,9 +5,19 @@ import { dailyQuestions } from '@/lib/challenges'
 import { divisions } from '@/lib/divisions'
 import { auditVehicles, completeness, creatorBadges } from '@/lib/health'
 import { fetchChallenges, fetchVehicles } from '@/lib/sheets'
+import { ZionAvatar, ZionSays } from '@/components/Zion'
+import CreatorLogin from '@/components/CreatorLogin'
+import { isCreatorAuthed, pinRequired } from '@/lib/creatorAuth'
+import { lock } from '@/app/creator/actions'
 
-export const revalidate = 60
-export const metadata = { title: 'Creator Hub', description: 'Build entries, check the sheet and see what your work becomes in the game.' }
+// Always rendered fresh on the server, so the PIN is checked on every visit, never baked in at build time.
+export const dynamic = 'force-dynamic'
+
+export const metadata = {
+  title: 'Creator Hub',
+  description: 'Build entries, check the sheet and see what your work becomes in the game.',
+  robots: { index: false, follow: false },
+}
 
 // The next seven Daily Challenges, so Zion can see how much of the game is his own work.
 function impact(vehicles, challenges) {
@@ -23,14 +33,15 @@ function impact(vehicles, challenges) {
   return { total, yours }
 }
 
-export default async function CreatorPage() {
+export default async function CreatorPage({ searchParams }) {
+  if (!(await isCreatorAuthed())) return <CreatorLogin wrong={Boolean((await searchParams)?.wrong)} />
   const [vehicles, challenges] = await Promise.all([fetchVehicles(), fetchChallenges()])
   const issues = auditVehicles(vehicles)
   const errors = issues.filter((i) => i.level === 'error')
   const tips = issues.filter((i) => i.level === 'tip')
   const badges = creatorBadges(vehicles, challenges)
   const { total, yours } = impact(vehicles, challenges)
-  const sheetUrl = process.env.NEXT_PUBLIC_CREATOR_SHEET_URL
+  const sheetUrl = process.env.CREATOR_SHEET_URL
   const ranked = vehicles.map((v) => ({ v, c: completeness(v) })).sort((a, b) => a.c.pct - b.c.pct)
   const biggestWin = ranked[0] && ranked[0].c.items.find((i) => !i.done)
   const slim = vehicles.map(({ name, slug }) => ({ name, slug }))
@@ -38,8 +49,16 @@ export default async function CreatorPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-10">
       <header>
-        <h1 className="text-4xl font-extrabold text-zts-midnight"><Icon name="hammer" className="mr-2 h-9 w-9 align-[-0.12em] text-zts-orange" />Creator Hub</h1>
-        <p className="mt-1 text-lg text-zts-graphite/80">Everything you add to the sheet becomes part of the game. Here you can see what your work turns into, check it for mistakes, and build new entries.</p>
+        <div className="flex items-center gap-4">
+          <ZionAvatar className="h-20 w-20" priority />
+          <h1 className="text-4xl font-extrabold text-zts-midnight">Zion&apos;s Creator Hub</h1>
+        </div>
+        <p className="mt-3 text-lg text-zts-graphite/80">Everything you add to the sheet becomes part of the game. Here you can see what your work turns into, check it for mistakes, and build new entries.</p>
+        {pinRequired() && (
+          <form action={lock} className="mt-3 inline">
+            <button type="submit" className="mr-2 inline-flex items-center rounded-full bg-slate-200 px-4 py-2 text-sm font-extrabold text-zts-midnight hover:bg-slate-300"><Icon name="lock" className="mr-1.5 h-4 w-4" />Lock the hub</button>
+          </form>
+        )}
         {sheetUrl && <a href={sheetUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex items-center rounded-full bg-green-600 px-5 py-2 font-extrabold text-white hover:brightness-110"><Icon name="share" className="mr-2 h-4 w-4" />Open my spreadsheet</a>}
       </header>
 

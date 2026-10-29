@@ -26,14 +26,14 @@ export default function LayoutWrapper({ children }) {
       </a>
       <header className="bg-zts-midnight text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
-          <Link href="/" className="flex items-center gap-2 font-extrabold">
+          <Link href="/" className="flex min-w-0 items-center gap-2 font-extrabold">
             <Logo className="h-10 w-10" />
             <span className="leading-tight">
               Zion Transport System
               <span className="block text-xs font-semibold text-zts-blue">Explorer&apos;s Encyclopedia</span>
             </span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             <StreakChip />
             <SoundToggle />
           </div>

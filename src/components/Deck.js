@@ -9,6 +9,7 @@ import SceneArt from '@/components/SceneArt'
 import { learn, recordCard } from '@/lib/explorer'
 import { play } from '@/lib/sound'
 import Icon, { DivisionIcon } from '@/components/Icon'
+import { ZionAvatar, ZionSays } from '@/components/Zion'
 
 // One card = one idea. Cards are plain data built on the server (see vehicle page).
 function Reveal({ card, accent }) {
@@ -50,7 +51,7 @@ function CardBody({ card, accent, slug }) {
           <div className="relative w-full bg-gradient-to-t from-black/80 to-transparent p-6 pt-16">
             <h2 className="text-4xl font-extrabold">{card.name}</h2>
             <p className="font-bold uppercase tracking-wide text-white/85">{card.division}</p>
-            <p className="mt-1 text-xs font-bold text-white/80"><Icon name="pencil" className="mr-1 h-3 w-3" />Researched by Zion</p>
+            <p className="mt-2 flex items-center justify-center gap-2 text-xs font-bold text-white/90"><ZionAvatar className="h-6 w-6" ring={false} />Researched by Zion</p>
             <p className="mt-2 text-sm text-white/80">Swipe or tap Next to start →</p>
           </div>
         </div>

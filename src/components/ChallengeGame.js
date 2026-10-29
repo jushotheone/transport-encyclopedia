@@ -6,6 +6,7 @@ import { dayKey, learn, recordDaily, recordRun, useExplorer } from '@/lib/explor
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
 import { toast } from '@/lib/toast'
+import { ZionAvatar, ZionSays } from '@/components/Zion'
 
 const LEVELS = ['', 'Scout', 'Navigator', 'Captain']
 const LIGHTNING_SECONDS = 10
@@ -295,12 +296,16 @@ export default function ChallengeGame({ vehicles, extra, mode }) {
       <Question key={q.id + idx} q={q} picked={picked} onPick={answer} lightning={lightning} timeLeft={timeLeft} />
 
       {picked !== null && (
-        <div aria-live="polite" className="animate-pop rounded-3xl bg-zts-midnight p-5 text-white shadow-lg">
+        <div aria-live="polite" className="animate-pop flex gap-3 rounded-3xl bg-zts-midnight p-5 text-white shadow-lg">
+          <ZionAvatar className="h-12 w-12" />
+          <div className="flex-1">
+          <span className="sr-only">Zion says: </span>
           <p className="text-xl font-extrabold">{picked >= 0 && q.choices[picked].correct ? 'Correct!' : picked === -1 ? 'Out of time!' : 'Not quite.'}</p>
           <p className="mt-1 text-lg"><Icon name="lightbulb" className="mr-1.5 h-5 w-5 text-yellow-300" />{q.explain}</p>
           <button type="button" onClick={next} className="mt-3 rounded-full bg-zts-orange px-6 py-2 font-extrabold hover:brightness-110">
             {!daily && lives <= 0 ? 'See my result' : daily && idx + 1 >= questions.length ? 'See my score' : 'Next question'}
           </button>
+          </div>
         </div>
       )}
     </div>

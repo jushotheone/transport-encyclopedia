@@ -10,7 +10,7 @@ export default function StreakChip() {
     <Link
       href="/passport"
       title={risk ? 'Play today to keep your streak!' : 'Your daily streak'}
-      className={`rounded-full px-3 py-1 text-sm font-extrabold ${s.streak ? 'bg-orange-500/90 text-white' : 'bg-white/10 text-white/80'} ${risk ? 'animate-pulse' : ''}`}
+      className={`inline-flex items-center whitespace-nowrap rounded-full px-3 py-1 text-sm font-extrabold ${s.streak ? 'bg-orange-500/90 text-white' : 'bg-white/10 text-white/80'} ${risk ? 'animate-pulse' : ''}`}
     >
       <Icon name="flame" className="mr-1 h-4 w-4" />{s.streak}
       <span className="sr-only"> day streak</span>
