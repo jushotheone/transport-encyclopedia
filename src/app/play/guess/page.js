@@ -21,7 +21,7 @@ export default async function GuessPage() {
       <Link href="/play" className="text-sm font-bold text-zts-blue hover:underline">← All games</Link>
       <h1 className="mt-2 text-4xl font-extrabold text-zts-midnight"><Icon name="eye" className="mr-2 h-9 w-9 text-indigo-600 align-[-0.12em]" />Who Am I?</h1>
       <p className="mb-8 mt-1 text-lg text-zts-graphite/80">
-        A mystery vehicle is hiding. Use the clues to work out what it is. The fewer clues you need, the more points you win!
+        A mystery vehicle is hiding. Read the clues, then choose when you think you know. The fewer clues you need, the more points you win!
       </p>
       <GuessGame vehicles={slim} />
     </div>

@@ -9,6 +9,8 @@ export default function GuessGame({ vehicles }) {
   const [rounds, setRounds] = useState(null)
   const [round, setRound] = useState(0)
   const [shown, setShown] = useState(1)
+  const [ready, setReady] = useState(false) // the choices stay hidden until the child says they are ready
+  const [locked, setLocked] = useState(0) // points on offer, fixed at the moment the choices appear
   const [result, setResult] = useState(null) // { picked, correct }
   const [score, setScore] = useState(0)
 
@@ -20,6 +22,7 @@ export default function GuessGame({ vehicles }) {
     setRounds(buildRounds(vehicles))
     setRound(0)
     setShown(1)
+    setReady(false)
     setResult(null)
     setScore(0)
   }
@@ -50,7 +53,8 @@ export default function GuessGame({ vehicles }) {
   }
 
   const { vehicle, clues, choices } = rounds[round]
-  const points = Math.max(1, clues.length + 1 - shown)
+  const worth = Math.max(1, clues.length + 1 - shown)
+  const points = ready ? locked : worth
 
   function pick(choice) {
     if (result) return
@@ -67,6 +71,7 @@ export default function GuessGame({ vehicles }) {
   function next() {
     setRound((r) => r + 1)
     setShown(1)
+    setReady(false)
     setResult(null)
   }
 
@@ -85,44 +90,63 @@ export default function GuessGame({ vehicles }) {
         ))}
       </ol>
 
-      {!result && shown < clues.length && (
-        <button
-          type="button"
-          onClick={() => setShown((s) => s + 1)}
-          className="rounded-full bg-zts-midnight px-5 py-2 font-extrabold text-white hover:bg-zts-blue"
-        >
-          <Icon name="search" className="mr-1.5 h-5 w-5" />Another clue (worth fewer points)
-        </button>
+      {!ready && (
+        <div className="space-y-3">
+          <p className="rounded-2xl bg-sky-50 p-3 font-bold text-zts-midnight">
+            Worth <span className="text-zts-orange">{worth} {worth === 1 ? 'point' : 'points'}</span> if you get it now. Each extra clue is worth one point less.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {shown < clues.length && (
+              <button type="button" onClick={() => setShown((n) => n + 1)} className="rounded-full bg-zts-midnight px-5 py-3 font-extrabold text-white hover:bg-zts-blue">
+                <Icon name="search" className="mr-1.5 h-5 w-5" />Another clue
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setLocked(worth)
+                setReady(true)
+              }}
+              className="rounded-full bg-zts-orange px-5 py-3 font-extrabold text-white hover:brightness-110"
+            >
+              <Icon name="check" className="mr-1.5 h-5 w-5" />{shown < clues.length ? 'I think I know!' : 'That is every clue. Show the choices'}
+            </button>
+          </div>
+        </div>
       )}
 
-      <h2 className="text-xl font-extrabold text-zts-midnight">
-        Who am I? <span className="text-zts-orange">{points} {points === 1 ? 'point' : 'points'}</span>
-      </h2>
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {choices.map((c) => {
-          const isAnswer = c.slug === vehicle.slug
-          const state = !result
-            ? 'bg-white hover:-translate-y-0.5 hover:shadow-lg'
-            : isAnswer
-              ? 'bg-green-500 text-white'
-              : result.picked === c.slug
-                ? 'bg-red-500/80 text-white'
-                : 'bg-white opacity-60'
-          return (
-            <li key={c.slug}>
-              <button
-                type="button"
-                disabled={!!result}
-                onClick={() => pick(c)}
-                className={`w-full rounded-2xl p-4 text-left text-lg font-extrabold shadow transition ${state}`}
-              >
-                <DivisionIcon slug={c.system} className="mr-2 h-5 w-5" />{c.name}
-                {result && isAnswer && <span className="sr-only"> (correct answer)</span>}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
+      {ready && (
+        <>
+          <h2 className="text-xl font-extrabold text-zts-midnight">
+            Which vehicle am I? <span className="text-zts-orange">{points} {points === 1 ? 'point' : 'points'}</span>
+          </h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {choices.map((c) => {
+              const isAnswer = c.slug === vehicle.slug
+              const state = !result
+                ? 'bg-white hover:-translate-y-0.5 hover:shadow-lg'
+                : isAnswer
+                  ? 'bg-green-500 text-white'
+                  : result.picked === c.slug
+                    ? 'bg-red-500/80 text-white'
+                    : 'bg-white opacity-60'
+              return (
+                <li key={c.slug}>
+                  <button
+                    type="button"
+                    disabled={!!result}
+                    onClick={() => pick(c)}
+                    className={`w-full rounded-2xl p-4 text-left text-lg font-extrabold shadow transition ${state}`}
+                  >
+                    <DivisionIcon slug={c.system} className="mr-2 h-5 w-5" />{c.name}
+                    {result && isAnswer && <span className="sr-only"> (correct answer)</span>}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      )}
 
       {result && (
         <div aria-live="polite" className="rounded-2xl bg-orange-50 p-4 shadow">
