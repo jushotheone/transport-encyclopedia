@@ -120,6 +120,13 @@ function VehicleMaker({ initial, existing, canPublish, onPublished }) {
             <Icon name="pencil" className="mr-1.5 h-4 w-4" />You are adding to <strong>{initial.name}</strong>. Fill in what is missing, then press Save changes.
           </p>
         )}
+        {initial ? (
+          <div className="rounded-2xl bg-white p-4 shadow">
+            <p className={label}>Vehicle</p>
+            <p className="text-2xl font-extrabold text-zts-midnight">{initial.name}</p>
+            <p className="font-bold text-zts-graphite/70">{divisions.find((d) => d.slug === initial.system)?.name || initial.system}</p>
+          </div>
+        ) : (<>
         <Field id="vm-name" title="What is it called?">
           <input id="vm-name" className={field} value={v.name} onChange={set('name')} placeholder="Double-decker bus" />
           {taken && <p className="mt-1 text-sm font-bold text-red-600">That one is already in the app. Pick a different name, or open it from &ldquo;Your vehicle files&rdquo; to add to it.</p>}
@@ -129,6 +136,7 @@ function VehicleMaker({ initial, existing, canPublish, onPublished }) {
             {divisions.map((d) => <option key={d.slug} value={d.slug}>{d.name}</option>)}
           </select>
         </Field>
+        </>)}
         <Field id="vm-desc" title="Tell your friends about it" hint="Two or three sentences, like you are explaining it out loud.">
           <textarea id="vm-desc" rows={3} className={field} value={v.description} onChange={set('description')} />
         </Field>
@@ -302,9 +310,45 @@ function Setup({ email, demo }) {
   )
 }
 
+// Zion picks a vehicle that is already in the sheet (name and division come from there) and fills in what is missing.
+function VehiclePicker({ vehicles, onPick, onNew }) {
+  const [div, setDiv] = useState(divisions[0].slug)
+  const list = vehicles
+    .filter((v) => v.system === div)
+    .map((v) => ({ v, p: completeness(v) }))
+    .sort((a, b) => a.p.pct - b.p.pct || a.v.name.localeCompare(b.v.name))
+  return (
+    <div className="space-y-4">
+      <Field id="vp-div" title="Which division?" hint="Pick a division, then choose a vehicle to finish. The emptiest ones are at the top.">
+        <select id="vp-div" className={field} value={div} onChange={(e) => setDiv(e.target.value)}>
+          {divisions.map((d) => <option key={d.slug} value={d.slug}>{d.name} ({vehicles.filter((v) => v.system === d.slug).length})</option>)}
+        </select>
+      </Field>
+      <ul className="grid gap-2 sm:grid-cols-2">
+        {list.map(({ v, p }) => (
+          <li key={v.slug}>
+            <button type="button" onClick={() => onPick(v)} className="flex w-full items-center gap-3 rounded-2xl bg-white p-3 text-left shadow hover:shadow-md">
+              <span className="flex-1">
+                <span className="block text-lg font-extrabold text-zts-midnight">{v.name}</span>
+                <span className="mt-1 block h-2 overflow-hidden rounded-full bg-slate-200"><span className="block h-full rounded-full bg-green-500" style={{ width: `${p.pct}%` }} /></span>
+              </span>
+              <span className="text-sm font-extrabold text-zts-graphite/70">{p.done}/{p.total}</span>
+            </button>
+          </li>
+        ))}
+        {list.length === 0 && <li className="font-bold text-zts-graphite/70">Nothing here yet.</li>}
+      </ul>
+      <button type="button" onClick={onNew} className="rounded-full bg-zts-blue px-5 py-3 font-extrabold text-white shadow hover:brightness-110">
+        <Icon name="plus" className="mr-1.5 h-4 w-4" />Add a brand-new vehicle that is not in the list
+      </button>
+    </div>
+  )
+}
+
 export default function CreatorTools({ vehicles, canPublish, review, email, demo }) {
   const [tab, setTab] = useState('vehicle')
   const [editing, setEditing] = useState(null)
+  const [fresh, setFresh] = useState(false) // true when making a brand-new vehicle
   const [notice, setNotice] = useState(null) // kept here so it stays on screen after the form resets
   const slugs = vehicles.map((v) => v.slug)
 
@@ -327,14 +371,14 @@ export default function CreatorTools({ vehicles, canPublish, review, email, demo
     <div className="space-y-5">
       {!canPublish && <Setup email={email} demo={demo} />}
       <div className="flex gap-2" role="tablist" aria-label="What would you like to make?">
-        <button type="button" role="tab" aria-selected={tab === 'vehicle'} onClick={() => setTab('vehicle')} className={tabBtn('vehicle')}><Icon name="car" className="mr-2 h-5 w-5" />{editing ? 'Add to a vehicle' : 'New vehicle'}</button>
+        <button type="button" role="tab" aria-selected={tab === 'vehicle'} onClick={() => setTab('vehicle')} className={tabBtn('vehicle')}><Icon name="car" className="mr-2 h-5 w-5" />Vehicles</button>
         <button type="button" role="tab" aria-selected={tab === 'question'} onClick={() => setTab('question')} className={tabBtn('question')}><Icon name="pencil" className="mr-2 h-5 w-5" />New question</button>
       </div>
       {tab === 'vehicle' ? (
         <>
           {editing && (
-            <button type="button" onClick={() => setEditing(null)} className="rounded-full bg-slate-200 px-4 py-2 text-sm font-extrabold text-zts-midnight hover:bg-slate-300">
-              <Icon name="back" className="mr-1.5 h-4 w-4" />Stop editing and make a new vehicle instead
+            <button type="button" onClick={() => { setEditing(null); setFresh(false) }} className="rounded-full bg-slate-200 px-4 py-2 text-sm font-extrabold text-zts-midnight hover:bg-slate-300">
+              <Icon name="back" className="mr-1.5 h-4 w-4" />Back to the vehicle list
             </button>
           )}
           {notice && (
@@ -343,6 +387,14 @@ export default function CreatorTools({ vehicles, canPublish, review, email, demo
               <Link href={`/vehicles/${notice.slug}`} className="text-sm underline">See it in the app</Link>
             </Published>
           )}
+          {!editing && fresh && (
+            <button type="button" onClick={() => setFresh(false)} className="rounded-full bg-slate-200 px-4 py-2 text-sm font-extrabold text-zts-midnight hover:bg-slate-300">
+              <Icon name="back" className="mr-1.5 h-4 w-4" />Back to the vehicle list
+            </button>
+          )}
+          {!editing && !fresh ? (
+            <VehiclePicker vehicles={vehicles} onPick={(v) => { setEditing(v); setNotice(null) }} onNew={() => setFresh(true)} />
+          ) : (
           <VehicleMaker
             key={editing?.slug || 'new'}
             initial={editing}
@@ -351,8 +403,10 @@ export default function CreatorTools({ vehicles, canPublish, review, email, demo
             onPublished={(n) => {
               setNotice(n)
               setEditing(null)
+              setFresh(false)
             }}
           />
+          )}
         </>
       ) : (
         <QuestionMaker vehicles={vehicles} canPublish={canPublish} review={review} />
