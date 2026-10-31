@@ -7,7 +7,7 @@ import { auditVehicles, completeness, creatorBadges } from '@/lib/health'
 import { fetchChallenges, fetchVehicles } from '@/lib/sheets'
 import { ZionAvatar, ZionSays } from '@/components/Zion'
 import CreatorLogin from '@/components/CreatorLogin'
-import { isCreatorAuthed, pinRequired } from '@/lib/creatorAuth'
+import { isCreatorAuthed, pinState } from '@/lib/creatorAuth'
 import { lock } from '@/app/creator/actions'
 
 // Always rendered fresh on the server, so the PIN is checked on every visit, never baked in at build time.
@@ -34,7 +34,7 @@ function impact(vehicles, challenges) {
 }
 
 export default async function CreatorPage({ searchParams }) {
-  if (!(await isCreatorAuthed())) return <CreatorLogin wrong={Boolean((await searchParams)?.wrong)} />
+  if (!(await isCreatorAuthed())) return <CreatorLogin wrong={Boolean((await searchParams)?.wrong)} state={pinState()} />
   const [vehicles, challenges] = await Promise.all([fetchVehicles(), fetchChallenges()])
   const issues = auditVehicles(vehicles)
   const errors = issues.filter((i) => i.level === 'error')
@@ -54,7 +54,7 @@ export default async function CreatorPage({ searchParams }) {
           <h1 className="text-4xl font-extrabold text-zts-midnight">Zion&apos;s Creator Hub</h1>
         </div>
         <p className="mt-3 text-lg text-zts-graphite/80">Everything you add to the sheet becomes part of the game. Here you can see what your work turns into, check it for mistakes, and build new entries.</p>
-        {pinRequired() && (
+        {(
           <form action={lock} className="mt-3 inline">
             <button type="submit" className="mr-2 inline-flex items-center rounded-full bg-slate-200 px-4 py-2 text-sm font-extrabold text-zts-midnight hover:bg-slate-300"><Icon name="lock" className="mr-1.5 h-4 w-4" />Lock the hub</button>
           </form>

@@ -2,7 +2,20 @@ import { unlock } from '@/app/creator/actions'
 import { ZionAvatar } from '@/components/Zion'
 import Icon from '@/components/Icon'
 
-export default function CreatorLogin({ wrong }) {
+export default function CreatorLogin({ wrong, state = 'ok' }) {
+  if (state !== 'ok') {
+    return (
+      <div className="mx-auto max-w-md px-4 py-16 text-center">
+        <ZionAvatar className="mx-auto h-24 w-24" priority />
+        <h1 className="mt-4 text-3xl font-extrabold text-zts-midnight">The Creator Hub is locked</h1>
+        <p className="mt-2 text-zts-graphite/80">
+          {state === 'short'
+            ? 'The creator PIN is too short to be safe. A grown-up needs to set CREATOR_PIN to at least 6 characters in the hosting settings, then deploy again.'
+            : 'No creator PIN has been set yet, so nobody can come in. A grown-up needs to add CREATOR_PIN (at least 6 characters) in the hosting settings, then deploy again.'}
+        </p>
+      </div>
+    )
+  }
   return (
     <div className="mx-auto max-w-sm px-4 py-16 text-center">
       <ZionAvatar className="mx-auto h-24 w-24" priority />
