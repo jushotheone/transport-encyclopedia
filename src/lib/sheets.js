@@ -4,6 +4,7 @@ import { JWT } from 'google-auth-library'
 import { sampleChallenges, sampleVehicles } from '@/lib/sampleVehicles'
 import { COLUMNS } from '@/lib/columns'
 import { cleanChoice, splitChoices } from '@/lib/utils'
+import { devRows } from '@/lib/devStore'
 
 const text = (v) => (v ?? '').toString().trim()
 const list = (v, splitter = /[,|•]+/) =>
@@ -64,12 +65,14 @@ async function loadFromSheet() {
 }
 
 // The sheet is read at most once every five minutes, however many pages are viewed.
-const loadCached = unstable_cache(loadFromSheet, ['zts-vehicles'], { revalidate: 300 })
+const loadCached = unstable_cache(loadFromSheet, ['zts-vehicles'], { revalidate: 300, tags: ['zts-sheet'] })
 
 export async function fetchVehicles() {
   if (!isConfigured()) {
     console.warn('Google Sheet is not configured, showing sample vehicles.')
-    return sampleVehicles
+    // Vehicles published from the Creator Hub while practising locally are shown too (newer entries replace samples).
+    const mine = devRows('Vehicles').map(parseRow).filter((v) => v.name && v.slug)
+    return [...sampleVehicles.filter((v) => !mine.some((m) => m.slug === v.slug)), ...mine]
   }
   try {
     return await loadCached()
@@ -117,10 +120,10 @@ async function loadChallengesFromSheet() {
   return rows.map((r) => parseChallenge(r._rawData)).filter(Boolean)
 }
 
-const loadChallengesCached = unstable_cache(loadChallengesFromSheet, ['zts-challenges'], { revalidate: 300 })
+const loadChallengesCached = unstable_cache(loadChallengesFromSheet, ['zts-challenges'], { revalidate: 300, tags: ['zts-sheet'] })
 
 export async function fetchChallenges() {
-  if (!isConfigured()) return sampleChallenges
+  if (!isConfigured()) return [...sampleChallenges, ...devRows('Challenges').map(parseChallenge).filter(Boolean)]
   try {
     return await loadChallengesCached()
   } catch (err) {

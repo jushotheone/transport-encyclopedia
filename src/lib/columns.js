@@ -6,21 +6,29 @@ export const COLUMNS = [
   'quiz_answer', 'custom_sound_url', 'zions_recommendation',
 ]
 
-// One vehicle as a tab-separated row: paste it into an empty row of the sheet and it fills every column.
-export function toSheetRow(v) {
-  const flat = (x) => String(x ?? '').replace(/[\t\r\n]+/g, ' ').trim()
+const flat = (x) => String(x ?? '').replace(/[\t\r\n]+/g, ' ').trim()
+
+// One vehicle as a list of cells, one per column, in sheet order.
+export function toCells(v) {
   const cell = {
     ...v,
     manufacturers: (v.manufacturers || []).join(', '),
     more_images: (v.more_images || []).join(', '),
     quiz_choices: (v.quiz_choices || []).join(' | '),
   }
-  return COLUMNS.map((c) => flat(cell[c])).join('\t')
+  return COLUMNS.map((c) => flat(cell[c]))
+}
+
+// The same row as tab-separated text: paste it into an empty row of the sheet and it fills every column.
+export const toSheetRow = (v) => toCells(v).join('\t')
+
+export const CHALLENGE_COLUMNS = ['vehicle slug', 'question', 'right answer', 'wrong 1', 'wrong 2', 'wrong 3', 'explanation', 'approved']
+
+// One written challenge as a list of cells for the "Challenges" tab.
+export function toChallengeCells({ vehicle = '', question, correct, wrongs = [], explanation = '', approved = 'yes' }) {
+  const w = [...wrongs, '', '', ''].slice(0, 3)
+  return [vehicle, question, correct, ...w, explanation, approved].map(flat)
 }
 
 // One written challenge as a tab-separated row for the optional "Challenges" tab.
-export function toChallengeRow({ vehicle = '', question, correct, wrongs = [], explanation = '' }) {
-  const flat = (x) => String(x ?? '').replace(/[\t\r\n]+/g, ' ').trim()
-  const w = [...wrongs, '', '', ''].slice(0, 3)
-  return [vehicle, question, correct, ...w, explanation, 'yes'].map(flat).join('\t')
-}
+export const toChallengeRow = (c) => toChallengeCells(c).join('\t')

@@ -5,6 +5,8 @@ import { dailyQuestions } from '@/lib/challenges'
 import { divisions } from '@/lib/divisions'
 import { auditVehicles, completeness, creatorBadges } from '@/lib/health'
 import { fetchChallenges, fetchVehicles } from '@/lib/sheets'
+import EditVehicleButton from '@/components/EditVehicleButton'
+import { googleConfigured, reviewMode, serviceEmail, writeEnabled } from '@/lib/sheetStore'
 import { ZionAvatar, ZionSays } from '@/components/Zion'
 import CreatorLogin from '@/components/CreatorLogin'
 import { isCreatorAuthed, pinState } from '@/lib/creatorAuth'
@@ -44,7 +46,6 @@ export default async function CreatorPage({ searchParams }) {
   const sheetUrl = process.env.CREATOR_SHEET_URL
   const ranked = vehicles.map((v) => ({ v, c: completeness(v) })).sort((a, b) => a.c.pct - b.c.pct)
   const biggestWin = ranked[0] && ranked[0].c.items.find((i) => !i.done)
-  const slim = vehicles.map(({ name, slug }) => ({ name, slug }))
 
   return (
     <div className="mx-auto max-w-5xl space-y-10 px-4 py-10">
@@ -94,7 +95,7 @@ export default async function CreatorPage({ searchParams }) {
 
       <section aria-labelledby="make-h">
         <h2 id="make-h" className="mb-3 text-2xl font-extrabold text-zts-midnight"><Icon name="sparkles" className="mr-2 h-6 w-6 text-zts-orange" />Make something new</h2>
-        <CreatorTools vehicles={slim} />
+        <CreatorTools vehicles={vehicles} canPublish={writeEnabled()} review={reviewMode()} email={serviceEmail()} demo={!googleConfigured()} />
       </section>
 
       <section aria-labelledby="files-h">
@@ -111,7 +112,10 @@ export default async function CreatorPage({ searchParams }) {
                 </div>
                 <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-gradient-to-r from-zts-blue to-zts-orange" style={{ width: `${c.pct}%` }} /></div>
                 {next.length > 0 ? (
-                  <p className="mt-2 text-sm text-zts-graphite/80">Add next: {next.map((n) => n.label.toLowerCase()).join(', ')}</p>
+                  <>
+                    <p className="mt-2 text-sm text-zts-graphite/80">Add next: {next.map((n) => n.label.toLowerCase()).join(', ')}</p>
+                    <EditVehicleButton slug={v.slug} name={v.name} />
+                  </>
                 ) : (
                   <p className="mt-2 text-sm font-bold text-green-700">Complete!</p>
                 )}

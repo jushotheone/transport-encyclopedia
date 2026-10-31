@@ -76,3 +76,23 @@ and has two makers with a live preview that copy a ready-made row to paste into 
 - The right answer can be the text of the choice, or a letter or number (`B`, `2`). Capital letters, spaces, a full stop at the end
   and `A)` prefixes are all forgiven.
 - A quiz whose answer does not match exactly one choice is kept out of the game, and the Creator Hub's Sheet check says why.
+
+## Publishing from the Creator Hub (no spreadsheet needed)
+
+With publishing switched on, the Creator Hub writes straight into the Google Sheet: **Publish to the app** adds a vehicle,
+**Save changes** fills in an existing one (open it from "Your vehicle files"), and **Publish to the games** adds a written
+question. Your sheet stays the single source of truth, and you can still edit it there.
+
+To switch it on, a grown-up does this once:
+
+1. In Google Sheets press **Share** and add the service-account email (shown in the hub) as an **Editor**. Reading the
+   site's content still uses a read-only key; only the PIN-protected hub ever writes.
+2. In the hosting settings add `CREATOR_WRITE=1` and deploy again.
+3. Optional: `CREATOR_REVIEW=1` makes new written questions wait for a grown-up to change `no` to `yes` in the Challenges tab.
+
+What is checked on the server on every write, whatever the browser sends: the PIN cookie; names, links (only `http(s)`
+web addresses, and YouTube for video), and quizzes (a right answer that is one of the choices); text that starts with
+`=`, `+`, `-` or `@` is cleaned so a spreadsheet can never read it as a formula; cells are written as plain text; and
+there is a limit of 40 writes an hour. A new vehicle with a name that already exists is refused.
+
+Without Google connected (local development) publishing goes to a temporary practice sheet instead.

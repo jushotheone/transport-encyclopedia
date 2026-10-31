@@ -1,19 +1,24 @@
 'use client'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Icon from '@/components/Icon'
 import ExplorerCard from '@/components/ExplorerCard'
 import { Question } from '@/components/ChallengeGame'
+import { ZionAvatar } from '@/components/Zion'
 import { divisions } from '@/lib/divisions'
 import { completeness } from '@/lib/health'
 import { toChallengeRow, toSheetRow } from '@/lib/columns'
 import { flagFor } from '@/lib/flags'
-import { cleanChoice, quizProblem, resolveAnswers, slugify, splitChoices } from '@/lib/utils'
+import { cleanChoice, quizProblem, slugify, splitChoices } from '@/lib/utils'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
 import { toast } from '@/lib/toast'
+import { publishChallenge, publishVehicle, updateVehicle } from '@/app/creator/actions'
 
 const field = 'mt-1 w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-lg font-bold text-zts-midnight outline-none focus:border-zts-blue'
 const label = 'block text-sm font-extrabold uppercase tracking-wide text-zts-graphite/70'
+const publishBtn = 'w-full rounded-full bg-green-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg hover:brightness-110 disabled:opacity-40'
 
 function Field({ id, title, hint, children }) {
   return (
@@ -29,42 +34,95 @@ async function copy(text, done) {
   try {
     await navigator.clipboard.writeText(text)
     play('good')
-    confetti({ count: 70, y: 0.5 })
     toast(done, 'ok')
   } catch {
-    toast('Your browser would not let me copy. Select the text in the box below and copy it.', 'alert')
+    toast('Your browser would not let me copy that.', 'alert')
   }
 }
 
-function VehicleMaker({ existing }) {
-  const [v, setV] = useState({ name: '', system: 'air', description: '', funFact: '', bonus_fact: '', manufacturers: '', origin_country: '', zions_note: '', zions_recommendation: '', image: '', video_url: '', custom_sound_url: '', learn_more: '', quiz_question: '', quiz_choices: '', quiz_answer: '' })
+function Problems({ errors }) {
+  if (!errors.length) return null
+  return (
+    <ul role="alert" className="space-y-1 rounded-2xl bg-red-50 p-3 text-sm font-bold text-red-800">
+      {errors.map((e, i) => <li key={i}><Icon name="alert" className="mr-1.5 h-4 w-4" />{e}</li>)}
+    </ul>
+  )
+}
+
+function Published({ children }) {
+  return (
+    <div className="animate-pop flex items-center gap-3 rounded-2xl bg-green-50 p-3 font-bold text-green-900">
+      <ZionAvatar className="h-10 w-10" />
+      <div className="flex-1">{children}</div>
+    </div>
+  )
+}
+
+const BLANK = { name: '', system: 'air', description: '', funFact: '', bonus_fact: '', manufacturers: '', origin_country: '', zions_note: '', zions_recommendation: '', image: '', video_url: '', custom_sound_url: '', learn_more: '', quiz_question: '', quiz_choices: '', quiz_answer: '' }
+
+// Turns a vehicle from the sheet back into the form's fields, so an existing entry can be added to.
+const toForm = (v) => ({
+  ...BLANK,
+  ...Object.fromEntries(Object.keys(BLANK).map((k) => [k, v[k] ?? ''])),
+  manufacturers: (v.manufacturers || []).join(', '),
+  quiz_choices: (v.quiz_choices || []).join('\n'),
+})
+
+function VehicleMaker({ initial, existing, canPublish, onPublished }) {
+  const router = useRouter()
+  const [v, setV] = useState(initial ? toForm(initial) : BLANK)
+  const [errors, setErrors] = useState([])
+  const [pending, start] = useTransition()
   const set = (k) => (e) => setV((x) => ({ ...x, [k]: e.target.value }))
 
-  const vehicle = useMemo(() => {
-    const choices = splitChoices(v.quiz_choices)
-    return {
+  const vehicle = useMemo(
+    () => ({
       ...v,
       name: v.name.trim() || 'Your vehicle',
-      slug: slugify(v.name) || 'your-vehicle',
+      slug: initial?.slug || slugify(v.name) || 'your-vehicle',
       flag_emoji: flagFor(v.origin_country),
       manufacturers: v.manufacturers.split(',').map((s) => s.trim()).filter(Boolean),
-      more_images: [],
-      quiz_choices: choices,
-    }
-  }, [v])
+      more_images: initial?.more_images || [],
+      quiz_choices: splitChoices(v.quiz_choices),
+    }),
+    [v, initial]
+  )
 
   const progress = completeness(vehicle)
-  const quizIssue = quizProblem(vehicle.quiz_question, vehicle.quiz_choices, vehicle.quiz_answer)
-  const taken = existing.includes(vehicle.slug) && v.name.trim()
   const choices = vehicle.quiz_choices
-  const ready = v.name.trim() && v.description.trim().length >= 10 && !taken && !quizIssue
+  const quizIssue = quizProblem(vehicle.quiz_question, choices, v.quiz_answer)
+  const taken = !initial && v.name.trim() && existing.includes(vehicle.slug)
+  const ready = v.name.trim() && v.description.trim().length >= 15 && !taken && !quizIssue
+
+  function publish() {
+    setErrors([])
+    start(async () => {
+      const input = { ...v, more_images: initial?.more_images || [] }
+      const result = initial ? await updateVehicle(initial.slug, input) : await publishVehicle(input)
+      if (!result.ok) {
+        play('bad')
+        return setErrors(result.errors)
+      }
+      play('win')
+      confetti({ count: 140, y: 0.5 })
+      toast(initial ? 'Saved! Your changes are live.' : `${v.name.trim()} is live in the app!`, 'rocket')
+      if (!initial) setV(BLANK)
+      router.refresh()
+      onPublished({ slug: result.slug, name: v.name.trim(), edited: Boolean(initial) })
+    })
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="space-y-4">
+        {initial && (
+          <p className="rounded-2xl bg-amber-50 p-3 font-bold text-amber-900">
+            <Icon name="pencil" className="mr-1.5 h-4 w-4" />You are adding to <strong>{initial.name}</strong>. Fill in what is missing, then press Save changes.
+          </p>
+        )}
         <Field id="vm-name" title="What is it called?">
           <input id="vm-name" className={field} value={v.name} onChange={set('name')} placeholder="Double-decker bus" />
-          {taken && <p className="mt-1 text-sm font-bold text-red-600">That one is already in the game. Pick a different name, or edit it in the sheet.</p>}
+          {taken && <p className="mt-1 text-sm font-bold text-red-600">That one is already in the app. Pick a different name, or open it from &ldquo;Your vehicle files&rdquo; to add to it.</p>}
         </Field>
         <Field id="vm-div" title="Which division?">
           <select id="vm-div" className={field} value={v.system} onChange={set('system')}>
@@ -105,7 +163,7 @@ function VehicleMaker({ existing }) {
           {quizIssue && v.quiz_question && <p className="text-sm font-bold text-red-600">{quizIssue}</p>}
         </fieldset>
 
-        <details className="rounded-3xl bg-slate-50 p-4">
+        <details className="rounded-3xl bg-slate-50 p-4" open={Boolean(initial)}>
           <summary className="cursor-pointer text-lg font-extrabold text-zts-midnight"><Icon name="eye" className="mr-1 h-5 w-5" />Photos, sound and video</summary>
           <div className="mt-3 space-y-4">
             <Field id="vm-img" title="Photo link" hint="A web address that starts with https://"><input id="vm-img" className={field} value={v.image} onChange={set('image')} /></Field>
@@ -135,35 +193,59 @@ function VehicleMaker({ existing }) {
           ))}
         </ul>
 
-        <button type="button" disabled={!ready} onClick={() => copy(toSheetRow({ ...vehicle, quiz_question: v.quiz_question.trim() }), 'Copied! Now paste it into the first empty row of the Vehicles tab.')} className="w-full rounded-full bg-zts-orange px-6 py-4 text-lg font-extrabold text-white shadow-lg hover:brightness-110 disabled:opacity-40">
-          <Icon name="share" className="mr-2 h-5 w-5" />Copy this row for the sheet
-        </button>
-        <p className="text-sm text-zts-graphite/70">
-          In the sheet, click the first empty box in column A of the <strong>Vehicles</strong> tab, then paste. Every column fills in for you.
-          {!ready && ' Add a name and a description to switch the button on.'}
-        </p>
+        <Problems errors={errors} />
+        {canPublish ? (
+          <button type="button" disabled={!ready || pending} onClick={publish} className={publishBtn}>
+            <Icon name="rocket" className="mr-2 h-5 w-5" />{pending ? 'Publishing…' : initial ? 'Save changes' : 'Publish to the app'}
+          </button>
+        ) : (
+          <button type="button" disabled={!ready} onClick={() => copy(toSheetRow({ ...vehicle, quiz_answer: v.quiz_answer }), 'Copied! Paste it into the first empty row of the Vehicles tab.')} className={`${publishBtn} bg-zts-orange`}>
+            <Icon name="share" className="mr-2 h-5 w-5" />Copy this row for the sheet
+          </button>
+        )}
+        {!ready && <p className="text-sm text-zts-graphite/70">Add a name and a description to switch the button on.</p>}
       </div>
     </div>
   )
 }
 
-function QuestionMaker({ vehicles }) {
-  const [c, setC] = useState({ vehicle: '', question: '', correct: '', w1: '', w2: '', w3: '', explanation: '' })
+function QuestionMaker({ vehicles, canPublish, review }) {
+  const router = useRouter()
+  const empty = { vehicle: '', question: '', correct: '', w1: '', w2: '', w3: '', explanation: '' }
+  const [c, setC] = useState(empty)
   const [picked, setPicked] = useState(null)
+  const [errors, setErrors] = useState([])
+  const [done, setDone] = useState(null)
+  const [pending, start] = useTransition()
   const set = (k) => (e) => {
     setC((x) => ({ ...x, [k]: e.target.value }))
     setPicked(null)
+    setDone(null)
   }
   const wrongs = [c.w1, c.w2, c.w3].map(cleanChoice).filter(Boolean)
   const q = useMemo(() => {
     const options = [{ label: cleanChoice(c.correct) || 'Your right answer', correct: true }, ...wrongs.map((w) => ({ label: w, correct: false }))]
-    return {
-      id: 'preview', level: 1, source: 'zion', authored: true, prompt: c.question || 'Your question appears here', quote: '',
-      choices: options.sort((a, b) => a.label.localeCompare(b.label)), explain: c.explanation || cleanChoice(c.correct),
-    }
+    return { id: 'preview', level: 1, source: 'zion', authored: true, prompt: c.question || 'Your question appears here', quote: '', choices: options.sort((a, b) => a.label.localeCompare(b.label)), explain: c.explanation || cleanChoice(c.correct) }
   }, [c, wrongs])
   const dup = new Set([cleanChoice(c.correct), ...wrongs].map((s) => s.toLowerCase())).size !== wrongs.length + 1
   const ready = c.question.trim() && c.correct.trim() && wrongs.length >= 1 && !dup
+
+  function publish() {
+    setErrors([])
+    start(async () => {
+      const r = await publishChallenge({ vehicle: c.vehicle, question: c.question, correct: c.correct, wrongs, explanation: c.explanation })
+      if (!r.ok) {
+        play('bad')
+        return setErrors(r.errors)
+      }
+      play('win')
+      confetti({ count: 100, y: 0.5 })
+      toast(r.review ? 'Saved! A grown-up needs to approve it before friends see it.' : 'Your question is live in the games!', 'rocket')
+      setDone({ review: r.review })
+      setC(empty)
+      router.refresh()
+    })
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -189,26 +271,92 @@ function QuestionMaker({ vehicles }) {
         <p className="text-sm font-extrabold uppercase tracking-wide text-zts-graphite/70">Try it, just like a friend will</p>
         <Question q={q} picked={picked} onPick={setPicked} lightning={false} timeLeft={0} />
         {picked !== null && <p className="rounded-2xl bg-zts-midnight p-4 font-bold text-white"><Icon name="lightbulb" className="mr-1.5 h-5 w-5 text-yellow-300" />{q.explain}</p>}
-        <button type="button" disabled={!ready} onClick={() => copy(toChallengeRow({ vehicle: c.vehicle, question: c.question, correct: cleanChoice(c.correct), wrongs, explanation: c.explanation }), 'Copied! Paste it into the first empty row of the Challenges tab.')} className="w-full rounded-full bg-zts-orange px-6 py-4 text-lg font-extrabold text-white shadow-lg hover:brightness-110 disabled:opacity-40">
-          <Icon name="share" className="mr-2 h-5 w-5" />Copy this question for the sheet
-        </button>
-        <p className="text-sm text-zts-graphite/70">Paste into column A of the <strong>Challenges</strong> tab. The last column already says <em>yes</em>, so it shows up in the game within a few minutes.</p>
+        <Problems errors={errors} />
+        {done && <Published>{done.review ? 'Saved! A grown-up needs to approve it before friends see it.' : 'Your question is live in the games!'}</Published>}
+        {canPublish ? (
+          <button type="button" disabled={!ready || pending} onClick={publish} className={publishBtn}>
+            <Icon name="rocket" className="mr-2 h-5 w-5" />{pending ? 'Publishing…' : review ? 'Send for approval' : 'Publish to the games'}
+          </button>
+        ) : (
+          <button type="button" disabled={!ready} onClick={() => copy(toChallengeRow({ vehicle: c.vehicle, question: c.question, correct: cleanChoice(c.correct), wrongs, explanation: c.explanation }), 'Copied! Paste it into the first empty row of the Challenges tab.')} className={`${publishBtn} bg-zts-orange`}>
+            <Icon name="share" className="mr-2 h-5 w-5" />Copy this question for the sheet
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
-export default function CreatorTools({ vehicles }) {
+function Setup({ email, demo }) {
+  return (
+    <details className="rounded-3xl bg-amber-50 p-4 text-amber-950">
+      <summary className="cursor-pointer text-lg font-extrabold"><Icon name="lock" className="mr-1.5 h-5 w-5" />Want to publish straight from here? A grown-up needs to switch it on</summary>
+      <ol className="mt-3 list-decimal space-y-2 pl-6 font-bold">
+        <li>Open your Google Sheet and press <em>Share</em>. Add <code className="rounded bg-white px-1.5 py-0.5 break-all">{email || 'the service account email'}</code> as an <em>Editor</em>.</li>
+        <li>In the hosting settings, add the variable <code className="rounded bg-white px-1.5 py-0.5">CREATOR_WRITE</code> set to <code className="rounded bg-white px-1.5 py-0.5">1</code>, then deploy again.</li>
+        <li>Optional: add <code className="rounded bg-white px-1.5 py-0.5">CREATOR_REVIEW</code> set to <code className="rounded bg-white px-1.5 py-0.5">1</code> so questions wait for a grown-up to approve them first.</li>
+      </ol>
+      {demo && <p className="mt-2 text-sm">Google is not connected here, so publishing would go to a practice sheet only.</p>}
+      <p className="mt-2 text-sm">Until then, the buttons below copy a ready-made row to paste into the sheet.</p>
+    </details>
+  )
+}
+
+export default function CreatorTools({ vehicles, canPublish, review, email, demo }) {
   const [tab, setTab] = useState('vehicle')
+  const [editing, setEditing] = useState(null)
+  const [notice, setNotice] = useState(null) // kept here so it stays on screen after the form resets
   const slugs = vehicles.map((v) => v.slug)
+
+  // The "Your vehicle files" list asks to open an entry here.
+  useEffect(() => {
+    const onEdit = (e) => {
+      const found = vehicles.find((v) => v.slug === e.detail)
+      if (!found) return
+      setEditing(found)
+      setNotice(null)
+      setTab('vehicle')
+      document.getElementById('make-h')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+    window.addEventListener('creator:edit', onEdit)
+    return () => window.removeEventListener('creator:edit', onEdit)
+  }, [vehicles])
+
   const tabBtn = (id) => `flex-1 rounded-2xl px-4 py-3 text-lg font-extrabold transition ${tab === id ? 'bg-zts-midnight text-white shadow-lg' : 'bg-white text-zts-midnight shadow'}`
   return (
     <div className="space-y-5">
+      {!canPublish && <Setup email={email} demo={demo} />}
       <div className="flex gap-2" role="tablist" aria-label="What would you like to make?">
-        <button type="button" role="tab" aria-selected={tab === 'vehicle'} onClick={() => setTab('vehicle')} className={tabBtn('vehicle')}><Icon name="car" className="mr-2 h-5 w-5" />New vehicle</button>
+        <button type="button" role="tab" aria-selected={tab === 'vehicle'} onClick={() => setTab('vehicle')} className={tabBtn('vehicle')}><Icon name="car" className="mr-2 h-5 w-5" />{editing ? 'Add to a vehicle' : 'New vehicle'}</button>
         <button type="button" role="tab" aria-selected={tab === 'question'} onClick={() => setTab('question')} className={tabBtn('question')}><Icon name="pencil" className="mr-2 h-5 w-5" />New question</button>
       </div>
-      {tab === 'vehicle' ? <VehicleMaker existing={slugs} /> : <QuestionMaker vehicles={vehicles} />}
+      {tab === 'vehicle' ? (
+        <>
+          {editing && (
+            <button type="button" onClick={() => setEditing(null)} className="rounded-full bg-slate-200 px-4 py-2 text-sm font-extrabold text-zts-midnight hover:bg-slate-300">
+              <Icon name="back" className="mr-1.5 h-4 w-4" />Stop editing and make a new vehicle instead
+            </button>
+          )}
+          {notice && (
+            <Published>
+              <p>{notice.edited ? `${notice.name} was updated and is live!` : `${notice.name} is live!`}</p>
+              <Link href={`/vehicles/${notice.slug}`} className="text-sm underline">See it in the app</Link>
+            </Published>
+          )}
+          <VehicleMaker
+            key={editing?.slug || 'new'}
+            initial={editing}
+            existing={slugs}
+            canPublish={canPublish}
+            onPublished={(n) => {
+              setNotice(n)
+              setEditing(null)
+            }}
+          />
+        </>
+      ) : (
+        <QuestionMaker vehicles={vehicles} canPublish={canPublish} review={review} />
+      )}
     </div>
   )
 }
