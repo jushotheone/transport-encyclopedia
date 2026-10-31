@@ -7,7 +7,7 @@ import {
   Binoculars, Hourglass, Sparkles, SkipForward, Square, MessageCircle, X, ThumbsUp, Target, PackageOpen, FlaskConical,
   House, Megaphone, Cross, Ambulance, TrafficCone, Milestone, Split, Building2, User, PiggyBank, Cylinder, Gauge, Pill,
   PartyPopper, Cat, Bird, Gem, Skull, Smile, CircleCheck, CircleX, Ban, Lamp, Navigation, Sun, Layers, Crown, Bell,
-  Plus, Pause, Shuffle, Palette, Footprints, Sprout, ChevronRight, ChevronLeft, IdCard, Dog, Fish, Rabbit, Swords,
+  Plus, Pause, Shuffle, Palette, Footprints, Sprout, ChevronRight, ChevronLeft, IdCard, Dog, Fish, Rabbit, Swords, Mic,
 } from 'lucide-react'
 
 // One consistent line-icon set for the whole app (replaces emoji in the interface).
@@ -27,7 +27,7 @@ const icons = {
   cross: Cross, ambulance: Ambulance, cone: TrafficCone, milestone: Milestone, split: Split, building: Building2,
   user: User, piggy: PiggyBank, cylinder: Cylinder, gauge: Gauge, pill: Pill, party: PartyPopper, cat: Cat, bird: Bird,
   gem: Gem, skull: Skull, smile: Smile, ok: CircleCheck, no: CircleX, ban: Ban, lamp: Lamp, navigation: Navigation,
-  sun: Sun, layers: Layers, crown: Crown, bell: Bell, plus: Plus, pause: Pause, shuffle: Shuffle, palette: Palette,
+  sun: Sun, layers: Layers, crown: Crown, bell: Bell, plus: Plus, mic: Mic, pause: Pause, shuffle: Shuffle, palette: Palette,
   footprints: Footprints, sprout: Sprout, right: ChevronRight, left: ChevronLeft, id: IdCard, dog: Dog, fish: Fish,
   rabbit: Rabbit, swords: Swords,
 }

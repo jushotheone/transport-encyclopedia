@@ -6,8 +6,7 @@ import { extractYouTubeID, quizProblem, safeUrl } from '@/lib/utils'
 const CHECKLIST = [
   { key: 'description', label: 'A clear description', unlocks: 'The explanation on its card deck', done: (v) => v.description.length >= 40 },
   { key: 'image', label: 'A photo', unlocks: 'A photo on its card, plus "Which vehicle is this?" questions', done: (v) => !!safeUrl(v.image) },
-  { key: 'funFact', label: 'A fun fact', unlocks: 'A Fun Fact card, plus Fact or Fake and "Which vehicle?" questions', done: (v) => v.funFact.length >= 30 },
-  { key: 'bonus_fact', label: 'A "did you know?" fact', unlocks: 'A Did You Know card and extra clues in Who Am I?', done: (v) => v.bonus_fact.length >= 30 },
+  { key: 'funFact', label: 'A fun fact', unlocks: 'A Fun Fact card, plus Fact or Fake and "Which vehicle?" questions', done: (v) => (v.funFact || v.bonus_fact).length >= 30 },
   { key: 'origin_country', label: 'Where it is from', unlocks: 'A Where Is It From card and country questions', done: (v) => !!v.origin_country },
   { key: 'manufacturers', label: 'Who builds it', unlocks: 'A Who Builds It card and "Which company?" questions', done: (v) => v.manufacturers.length > 0 },
   { key: 'zions_note', label: 'Your own note', unlocks: 'Your voice in the game: it becomes "Zion said this, which vehicle?" questions', done: (v) => v.zions_note.length >= 25 },

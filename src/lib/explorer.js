@@ -36,6 +36,8 @@ const EMPTY = {
   bonus: 0,
   daily: { day: '', flags: [], claimed: false },
   fieldCount: 0,
+  makeDay: '', // last day Zion saved something in the Creator Hub
+  makeDays: 0,
   challenge: { best: 0, daily: { day: '', score: 0, total: 0 } },
 }
 // Server render pretends the intro was seen so crawlers and first paint never get blocked by it.
@@ -75,6 +77,8 @@ function load() {
       bonus: num(raw.bonus),
       daily: { day: daily.day || '', flags: arr(daily.flags), claimed: !!daily.claimed },
       fieldCount: num(raw.fieldCount),
+      makeDay: typeof raw.makeDay === 'string' ? raw.makeDay : '',
+      makeDays: num(raw.makeDays),
       challenge: {
         best: num(raw.challenge?.best),
         daily: {
@@ -254,6 +258,14 @@ export function completeFieldMission() {
   const s = getState()
   if (dailyFlags(s).includes('field')) return false
   commit(tick({ ...s, fieldCount: s.fieldCount + 1, bonus: s.bonus + 5 }, 'field'))
+  return true
+}
+
+// Saving a vehicle in the Creator Hub: the first save of each day earns bonus points. Returns true when it did.
+export function recordCreated() {
+  const s = getState()
+  if (s.makeDay === dayKey()) return false
+  commit({ ...s, makeDay: dayKey(), makeDays: s.makeDays + 1, bonus: s.bonus + 10 })
   return true
 }
 

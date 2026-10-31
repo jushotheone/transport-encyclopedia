@@ -3,18 +3,18 @@ import { useEffect, useMemo, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import Icon from '@/components/Icon'
-import ExplorerCard from '@/components/ExplorerCard'
+import VehicleQuest from '@/components/VehicleQuest'
 import { Question } from '@/components/ChallengeGame'
 import { ZionAvatar } from '@/components/Zion'
 import { divisions } from '@/lib/divisions'
 import { completeness } from '@/lib/health'
-import { toChallengeRow, toSheetRow } from '@/lib/columns'
-import { flagFor } from '@/lib/flags'
-import { cleanChoice, quizProblem, slugify, splitChoices } from '@/lib/utils'
+import { toChallengeRow } from '@/lib/columns'
+import { cleanChoice } from '@/lib/utils'
 import { confetti } from '@/lib/confetti'
 import { play } from '@/lib/sound'
+import { useExplorer, dayKey } from '@/lib/explorer'
 import { toast } from '@/lib/toast'
-import { publishChallenge, publishVehicle, updateVehicle } from '@/app/creator/actions'
+import { publishChallenge } from '@/app/creator/actions'
 
 const field = 'mt-1 w-full rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 text-lg font-bold text-zts-midnight outline-none focus:border-zts-blue'
 const label = 'block text-sm font-extrabold uppercase tracking-wide text-zts-graphite/70'
@@ -54,165 +54,6 @@ function Published({ children }) {
     <div className="animate-pop flex items-center gap-3 rounded-2xl bg-green-50 p-3 font-bold text-green-900">
       <ZionAvatar className="h-10 w-10" />
       <div className="flex-1">{children}</div>
-    </div>
-  )
-}
-
-const BLANK = { name: '', system: 'air', description: '', funFact: '', bonus_fact: '', manufacturers: '', origin_country: '', zions_note: '', zions_recommendation: '', image: '', video_url: '', custom_sound_url: '', learn_more: '', quiz_question: '', quiz_choices: '', quiz_answer: '' }
-
-// Turns a vehicle from the sheet back into the form's fields, so an existing entry can be added to.
-const toForm = (v) => ({
-  ...BLANK,
-  ...Object.fromEntries(Object.keys(BLANK).map((k) => [k, v[k] ?? ''])),
-  manufacturers: (v.manufacturers || []).join(', '),
-  quiz_choices: (v.quiz_choices || []).join('\n'),
-})
-
-function VehicleMaker({ initial, existing, canPublish, onPublished }) {
-  const router = useRouter()
-  const [v, setV] = useState(initial ? toForm(initial) : BLANK)
-  const [errors, setErrors] = useState([])
-  const [pending, start] = useTransition()
-  const set = (k) => (e) => setV((x) => ({ ...x, [k]: e.target.value }))
-
-  const vehicle = useMemo(
-    () => ({
-      ...v,
-      name: v.name.trim() || 'Your vehicle',
-      slug: initial?.slug || slugify(v.name) || 'your-vehicle',
-      flag_emoji: flagFor(v.origin_country),
-      manufacturers: v.manufacturers.split(',').map((s) => s.trim()).filter(Boolean),
-      more_images: initial?.more_images || [],
-      quiz_choices: splitChoices(v.quiz_choices),
-    }),
-    [v, initial]
-  )
-
-  const progress = completeness(vehicle)
-  const choices = vehicle.quiz_choices
-  const quizIssue = quizProblem(vehicle.quiz_question, choices, v.quiz_answer)
-  const taken = !initial && v.name.trim() && existing.includes(vehicle.slug)
-  const ready = v.name.trim() && v.description.trim().length >= 15 && !taken && !quizIssue
-
-  function publish() {
-    setErrors([])
-    start(async () => {
-      const input = { ...v, more_images: initial?.more_images || [] }
-      const result = initial ? await updateVehicle(initial.slug, input) : await publishVehicle(input)
-      if (!result.ok) {
-        play('bad')
-        return setErrors(result.errors)
-      }
-      play('win')
-      confetti({ count: 140, y: 0.5 })
-      toast(initial ? 'Saved! Your changes are live.' : `${v.name.trim()} is live in the app!`, 'rocket')
-      if (!initial) setV(BLANK)
-      router.refresh()
-      onPublished({ slug: result.slug, name: v.name.trim(), edited: Boolean(initial) })
-    })
-  }
-
-  return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      <div className="space-y-4">
-        {initial && (
-          <p className="rounded-2xl bg-amber-50 p-3 font-bold text-amber-900">
-            <Icon name="pencil" className="mr-1.5 h-4 w-4" />You are adding to <strong>{initial.name}</strong>. Fill in what is missing, then press Save changes.
-          </p>
-        )}
-        {initial ? (
-          <div className="rounded-2xl bg-white p-4 shadow">
-            <p className={label}>Vehicle</p>
-            <p className="text-2xl font-extrabold text-zts-midnight">{initial.name}</p>
-            <p className="font-bold text-zts-graphite/70">{divisions.find((d) => d.slug === initial.system)?.name || initial.system}</p>
-          </div>
-        ) : (<>
-        <Field id="vm-name" title="What is it called?">
-          <input id="vm-name" className={field} value={v.name} onChange={set('name')} placeholder="Double-decker bus" />
-          {taken && <p className="mt-1 text-sm font-bold text-red-600">That one is already in the app. Pick a different name, or open it from &ldquo;Your vehicle files&rdquo; to add to it.</p>}
-        </Field>
-        <Field id="vm-div" title="Which division?">
-          <select id="vm-div" className={field} value={v.system} onChange={set('system')}>
-            {divisions.map((d) => <option key={d.slug} value={d.slug}>{d.name}</option>)}
-          </select>
-        </Field>
-        </>)}
-        <Field id="vm-desc" title="Tell your friends about it" hint="Two or three sentences, like you are explaining it out loud.">
-          <textarea id="vm-desc" rows={3} className={field} value={v.description} onChange={set('description')} />
-        </Field>
-        <Field id="vm-fact" title="A fun fact" hint="Something that makes people say wow.">
-          <textarea id="vm-fact" rows={2} className={field} value={v.funFact} onChange={set('funFact')} />
-        </Field>
-        <Field id="vm-bonus" title="Did you know…?"><textarea id="vm-bonus" rows={2} className={field} value={v.bonus_fact} onChange={set('bonus_fact')} /></Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="vm-country" title="Where is it from?">
-            <input id="vm-country" className={field} value={v.origin_country} onChange={set('origin_country')} placeholder="Japan" />
-            {vehicle.flag_emoji && <p className="mt-1 text-2xl">{vehicle.flag_emoji}</p>}
-          </Field>
-          <Field id="vm-makers" title="Who builds it?" hint="Separate with commas."><input id="vm-makers" className={field} value={v.manufacturers} onChange={set('manufacturers')} /></Field>
-        </div>
-        <Field id="vm-note" title="Your own note" hint="What do YOU think? Friends will be asked about it.">
-          <textarea id="vm-note" rows={2} className={field} value={v.zions_note} onChange={set('zions_note')} />
-        </Field>
-        <Field id="vm-rec" title="Zion recommends…"><input id="vm-rec" className={field} value={v.zions_recommendation} onChange={set('zions_recommendation')} /></Field>
-
-        <fieldset className="space-y-3 rounded-3xl bg-sky-50 p-4">
-          <legend className="px-2 text-lg font-extrabold text-zts-midnight"><Icon name="brain" className="mr-1 h-5 w-5" />Write a quiz</legend>
-          <Field id="vm-q" title="Question"><input id="vm-q" className={field} value={v.quiz_question} onChange={set('quiz_question')} /></Field>
-          <Field id="vm-choices" title="Choices" hint="One choice on each line.">
-            <textarea id="vm-choices" rows={4} className={field} value={v.quiz_choices} onChange={set('quiz_choices')} />
-          </Field>
-          <Field id="vm-ans" title="Which one is right?">
-            <select id="vm-ans" className={field} value={v.quiz_answer} onChange={set('quiz_answer')} disabled={choices.length < 2}>
-              <option value="">{choices.length < 2 ? 'Add at least 2 choices first' : 'Pick the right answer'}</option>
-              {choices.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </Field>
-          {quizIssue && v.quiz_question && <p className="text-sm font-bold text-red-600">{quizIssue}</p>}
-        </fieldset>
-
-        <details className="rounded-3xl bg-slate-50 p-4" open={Boolean(initial)}>
-          <summary className="cursor-pointer text-lg font-extrabold text-zts-midnight"><Icon name="eye" className="mr-1 h-5 w-5" />Photos, sound and video</summary>
-          <div className="mt-3 space-y-4">
-            <Field id="vm-img" title="Photo link" hint="A web address that starts with https://"><input id="vm-img" className={field} value={v.image} onChange={set('image')} /></Field>
-            <Field id="vm-snd" title="Sound link"><input id="vm-snd" className={field} value={v.custom_sound_url} onChange={set('custom_sound_url')} /></Field>
-            <Field id="vm-vid" title="YouTube video link"><input id="vm-vid" className={field} value={v.video_url} onChange={set('video_url')} /></Field>
-            <Field id="vm-more" title="Learn more links" hint="Grown-up approved websites, separated by commas."><input id="vm-more" className={field} value={v.learn_more} onChange={set('learn_more')} /></Field>
-          </div>
-        </details>
-      </div>
-
-      <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-        <div className="rounded-3xl bg-zts-midnight p-5 text-white shadow-xl">
-          <p className="text-sm font-extrabold uppercase tracking-wide text-white/70">This is what your friends will see</p>
-          <div className="mt-3 flex justify-center"><ExplorerCard vehicle={{ ...vehicle, system: v.system }} flippable /></div>
-          <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/15" role="progressbar" aria-valuenow={progress.pct} aria-valuemin={0} aria-valuemax={100} aria-label="How complete this entry is">
-            <div className="h-full rounded-full bg-gradient-to-r from-zts-blue to-zts-orange transition-all" style={{ width: `${progress.pct}%` }} />
-          </div>
-          <p className="mt-1 text-sm font-bold">{progress.done} of {progress.total} things added</p>
-        </div>
-
-        <ul className="space-y-2 rounded-3xl bg-white p-4 shadow ring-1 ring-zts-midnight/10">
-          {progress.items.map((i) => (
-            <li key={i.key} className={`flex gap-3 rounded-2xl p-2 ${i.done ? 'bg-green-50' : 'bg-slate-50'}`}>
-              <Icon name={i.done ? 'ok' : 'plus'} className={`mt-0.5 h-6 w-6 ${i.done ? 'text-green-600' : 'text-slate-400'}`} />
-              <span><span className="block font-extrabold text-zts-midnight">{i.label}</span><span className="text-sm text-zts-graphite/70">{i.unlocks}</span></span>
-            </li>
-          ))}
-        </ul>
-
-        <Problems errors={errors} />
-        {canPublish ? (
-          <button type="button" disabled={!ready || pending} onClick={publish} className={publishBtn}>
-            <Icon name="rocket" className="mr-2 h-5 w-5" />{pending ? 'Publishing…' : initial ? 'Save changes' : 'Publish to the app'}
-          </button>
-        ) : (
-          <button type="button" disabled={!ready} onClick={() => copy(toSheetRow({ ...vehicle, quiz_answer: v.quiz_answer }), 'Copied! Paste it into the first empty row of the Vehicles tab.')} className={`${publishBtn} bg-zts-orange`}>
-            <Icon name="share" className="mr-2 h-5 w-5" />Copy this row for the sheet
-          </button>
-        )}
-        {!ready && <p className="text-sm text-zts-graphite/70">Add a name and a description to switch the button on.</p>}
-      </div>
     </div>
   )
 }
@@ -317,9 +158,21 @@ function VehiclePicker({ vehicles, onPick, onNew }) {
     .filter((v) => v.system === div)
     .map((v) => ({ v, p: completeness(v) }))
     .sort((a, b) => a.p.pct - b.p.pct || a.v.name.localeCompare(b.v.name))
+  const me = useExplorer()
+  const doneToday = me.makeDay === dayKey()
+  const emptiest = vehicles.map((v) => ({ v, p: completeness(v) })).sort((a, b) => a.p.pct - b.p.pct)[0]
   return (
     <div className="space-y-4">
-      <Field id="vp-div" title="Which division?" hint="Pick a division, then choose a vehicle to finish. The emptiest ones are at the top.">
+      <div className={`rounded-3xl p-4 shadow ${doneToday ? 'bg-green-50 ring-2 ring-green-300' : 'bg-zts-midnight text-white'}`}>
+        <p className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide opacity-80"><Icon name={doneToday ? 'ok' : 'timer'} className="h-4 w-4" />Today&apos;s creator mission{me.makeDays > 0 ? ` · ${me.makeDays} creator day${me.makeDays === 1 ? '' : 's'}` : ''}</p>
+        <p className="mt-1 text-xl font-extrabold">{doneToday ? 'Done! You made the app better today.' : 'Finish one vehicle. About 5 minutes. Talk instead of typing.'}</p>
+        {!doneToday && emptiest && (
+          <button type="button" onClick={() => onPick(emptiest.v)} className="mt-3 rounded-full bg-zts-orange px-5 py-2.5 font-extrabold text-white shadow hover:brightness-110">
+            <Icon name="rocket" className="mr-1.5 h-4 w-4" />Start with {emptiest.v.name}
+          </button>
+        )}
+      </div>
+      <Field id="vp-div" title="Or pick a division and choose yourself" hint="The emptiest cards are at the top.">
         <select id="vp-div" className={field} value={div} onChange={(e) => setDiv(e.target.value)}>
           {divisions.map((d) => <option key={d.slug} value={d.slug}>{d.name} ({vehicles.filter((v) => v.system === d.slug).length})</option>)}
         </select>
@@ -350,7 +203,6 @@ export default function CreatorTools({ vehicles, canPublish, review, email, demo
   const [editing, setEditing] = useState(null)
   const [fresh, setFresh] = useState(false) // true when making a brand-new vehicle
   const [notice, setNotice] = useState(null) // kept here so it stays on screen after the form resets
-  const slugs = vehicles.map((v) => v.slug)
 
   // The "Your vehicle files" list asks to open an entry here.
   useEffect(() => {
@@ -383,8 +235,12 @@ export default function CreatorTools({ vehicles, canPublish, review, email, demo
           )}
           {notice && (
             <Published>
-              <p>{notice.edited ? `${notice.name} was updated and is live!` : `${notice.name} is live!`}</p>
-              <Link href={`/vehicles/${notice.slug}`} className="text-sm underline">See it in the app</Link>
+              <p>{notice.edited ? `${notice.name} was updated and is live!` : `${notice.name} is live!`}{notice.tier ? ` It is a ${notice.tier} card.` : ''}</p>
+              <p className="mt-1 text-sm font-bold">
+                <Link href={`/vehicles/${notice.slug}`} className="underline">See your card</Link>
+                {' · '}
+                <Link href="/play" className="underline">Play the games with it</Link>
+              </p>
             </Published>
           )}
           {!editing && fresh && (
@@ -395,10 +251,11 @@ export default function CreatorTools({ vehicles, canPublish, review, email, demo
           {!editing && !fresh ? (
             <VehiclePicker vehicles={vehicles} onPick={(v) => { setEditing(v); setNotice(null) }} onNew={() => setFresh(true)} />
           ) : (
-          <VehicleMaker
+          <VehicleQuest
             key={editing?.slug || 'new'}
             initial={editing}
-            existing={slugs}
+            vehicles={vehicles}
+            onBack={() => { setEditing(null); setFresh(false) }}
             canPublish={canPublish}
             onPublished={(n) => {
               setNotice(n)
